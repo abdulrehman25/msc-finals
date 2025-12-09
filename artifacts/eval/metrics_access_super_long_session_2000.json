@@ -1,0 +1,51 @@
+{
+  "n_lines": 2000,
+  "labels_used": true,
+  "threshold_percentile": 95.0,
+  "thresholds": {
+    "content": 1.1769436836242675,
+    "session": 1.3213563144207001,
+    "fused": 1.233156716823578
+  },
+  "metrics": {
+    "content": {
+      "auc": NaN,
+      "prauc": 0.0,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tn": 1900,
+      "fp": 100,
+      "fn": 0,
+      "tp": 0,
+      "fpr": 0.05,
+      "threshold": 1.1769436836242675
+    },
+    "session": {
+      "auc": NaN,
+      "prauc": 0.0,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tn": 1900,
+      "fp": 100,
+      "fn": 0,
+      "tp": 0,
+      "fpr": 0.05,
+      "threshold": 1.3213563144207001
+    },
+    "fused": {
+      "auc": NaN,
+      "prauc": 0.0,
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tn": 1900,
+      "fp": 100,
+      "fn": 0,
+      "tp": 0,
+      "fpr": 0.05,
+      "threshold": 1.233156716823578
+    }
+  }
+}

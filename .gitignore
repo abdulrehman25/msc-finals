@@ -1,0 +1,15 @@
+# Python virtual env
+.venv/
+venv/
+
+# Big log/data files
+data/real/
+*.log
+
+
+# Other usual stuff
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/

@@ -1,0 +1,11 @@
+{
+  "n_lines": 120,
+  "labels_used": false,
+  "threshold_percentile": 95.0,
+  "thresholds": {
+    "content": 1.2997895956039427,
+    "session": 7529.004077148426,
+    "fused": 3764.938945952052
+  },
+  "metrics": {}
+}

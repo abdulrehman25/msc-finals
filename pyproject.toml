@@ -1,0 +1,16 @@
+[project]
+name = "weblog-anomaly"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+# Auto-find any packages under ./src that actually exist
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]

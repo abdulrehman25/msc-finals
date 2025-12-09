@@ -1,0 +1,6 @@
+{
+  "input_dim": 11,
+  "threshold": 0.4136852025985718,
+  "window": 20,
+  "percentile": 95.0
+}

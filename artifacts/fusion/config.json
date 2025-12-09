@@ -1,0 +1,8 @@
+{
+  "method": "percentile",
+  "p": 95.0,
+  "weights": {
+    "content": 0.5,
+    "session": 0.5
+  }
+}
