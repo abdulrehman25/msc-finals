@@ -46,7 +46,8 @@ def _from_match(m: re.Match, has_refua: bool):
         "method": method,
         "path": path,
         "status": gd.get("status"),
-        "size": None if size in ("-","") else size,
+        "size": None if size in ("-","") else size,.
+        
         "ref": gd.get("ref") if has_refua else "-",
         "ua": gd.get("ua") if has_refua else "-"
     }

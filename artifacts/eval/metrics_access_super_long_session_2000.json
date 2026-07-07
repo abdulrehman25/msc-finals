@@ -3,49 +3,52 @@
   "labels_used": true,
   "threshold_percentile": 95.0,
   "thresholds": {
-    "content": 1.1769436836242675,
-    "session": 1.3213563144207001,
-    "fused": 1.233156716823578
+    "content": 5.819892454147339,
+    "session": 0.8510454654693603,
+    "fused": 3.3307483687996866
   },
   "metrics": {
     "content": {
-      "auc": NaN,
-      "prauc": 0.0,
-      "f1": 0.0,
+      "auc": null,
+      "prauc": null,
       "precision": 0.0,
       "recall": 0.0,
+      "f1": 0.0,
       "tn": 1900,
       "fp": 100,
       "fn": 0,
       "tp": 0,
       "fpr": 0.05,
-      "threshold": 1.1769436836242675
+      "threshold": 5.819892454147339,
+      "alert_rate": 0.05
     },
     "session": {
-      "auc": NaN,
-      "prauc": 0.0,
-      "f1": 0.0,
+      "auc": null,
+      "prauc": null,
       "precision": 0.0,
       "recall": 0.0,
+      "f1": 0.0,
       "tn": 1900,
       "fp": 100,
       "fn": 0,
       "tp": 0,
       "fpr": 0.05,
-      "threshold": 1.3213563144207001
+      "threshold": 0.8510454654693603,
+      "alert_rate": 0.05
     },
     "fused": {
-      "auc": NaN,
-      "prauc": 0.0,
-      "f1": 0.0,
+      "auc": null,
+      "prauc": null,
       "precision": 0.0,
       "recall": 0.0,
+      "f1": 0.0,
       "tn": 1900,
       "fp": 100,
       "fn": 0,
       "tp": 0,
       "fpr": 0.05,
-      "threshold": 1.233156716823578
+      "threshold": 3.3307483687996866,
+      "alert_rate": 0.05
     }
   }
 }

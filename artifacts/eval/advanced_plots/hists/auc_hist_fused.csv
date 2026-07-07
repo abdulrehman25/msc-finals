@@ -1,0 +1,4 @@
+stem,auc
+access_eval_mix_2000,0.660171
+access_eval_small_500,0.668117
+nginx_json_eval_800,0.575521

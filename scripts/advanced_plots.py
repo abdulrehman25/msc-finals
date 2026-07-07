@@ -255,7 +255,13 @@ def plot_heatmap_metric(df_metrics: pd.DataFrame, metric: str):
     fig.savefig(out, dpi=160)
     plt.close(fig)
     print("[OK] heatmap →", out)
-
+def _norm_stem(s: str) -> str:
+    # accept "name", "name.log", "metrics_name.json" etc.
+    s = s.strip()
+    s = Path(s).stem  # strips .log / .json
+    if s.startswith("metrics_"):
+        s = s[len("metrics_"):]
+    return s
 # ---------------- Main ----------------
 
 def main():
@@ -273,19 +279,18 @@ def main():
 
     # Load metrics list (to fetch thresholds + stems)
     dfm = load_all_metrics()
-    if dfm.empty:
-        raise SystemExit("[ERR] No metrics_*.json found in artifacts/eval/")
-
-    # Select stems
     all_stems = sorted(dfm["dataset"].unique())
     if args.stems:
-        wanted = [s.strip() for s in args.stems.split(",") if s.strip()]
+        wanted = [_norm_stem(s) for s in args.stems.split(",") if s.strip()]
         stems = [s for s in all_stems if s in wanted]
     else:
         stems = all_stems
 
-    # 1) Heatmap across ALL stems
-    plot_heatmap_metric(dfm, args.heatmap_metric)
+    # ⬇️ use only selected stems for the heatmap
+    dfm_sel = dfm[dfm["dataset"].isin(stems)].copy()
+
+    # 1) Heatmap across SELECTED stems
+    plot_heatmap_metric(dfm_sel, args.heatmap_metric)
 
     # 2) Per-stem coherence + scatter
     for stem in stems:

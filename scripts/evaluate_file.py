@@ -7,6 +7,12 @@ if str(ROOT) not in sys.path:
 import argparse, json, os, math
 from pathlib import Path
 import numpy as np
+from sklearn.metrics import (
+    roc_auc_score, average_precision_score, f1_score,
+    precision_score, recall_score, confusion_matrix
+)
+import math
+
 import torch, joblib
 from sklearn.metrics import roc_auc_score, average_precision_score, f1_score, precision_score, recall_score, confusion_matrix
 from src.featurization.features import line_to_vector
@@ -82,60 +88,71 @@ def choose_threshold(scores, method="percentile", p=95.0):
     return float(np.percentile(scores, 95.0))
 
 def compute_metrics(y_true, y_score, thr):
-    import numpy as np
-    from sklearn.metrics import roc_auc_score, average_precision_score, f1_score, precision_score, recall_score, confusion_matrix
+    """
+    y_true  : 1-D array of {0,1}
+    y_score : 1-D float anomaly scores
+    thr     : float threshold; if nan/inf, uses p95 of y_score
+    Returns: dict with auc, prauc, f1, precision, recall, fpr, tn/fp/fn/tp, threshold, alert_rate
+    """
+    # 1) shape & dtype safety
+    y_true = np.asarray(y_true, dtype=int).ravel()
+    y_score = np.asarray(y_score, dtype=float).ravel()
+    n = min(len(y_true), len(y_score))
+    y_true = y_true[:n]
+    y_score = y_score[:n]
 
+    # 2) choose threshold if bad
+    if thr is None or (isinstance(thr, float) and (math.isnan(thr) or math.isinf(thr))):
+        thr = float(np.percentile(y_score, 95))
+
+    # 3) build predictions from threshold
     y_pred = (y_score > thr).astype(int)
+
+    # 4) guard single-class labels for AUC/PR-AUC
+    has_both = np.unique(y_true).size == 2 and (y_true == 1).any() and (y_true == 0).any()
+    if has_both:
+        try:
+            auc = float(roc_auc_score(y_true, y_score))
+        except Exception:
+            auc = None
+        try:
+            prauc = float(average_precision_score(y_true, y_score))
+        except Exception:
+            prauc = None
+    else:
+        auc = None
+        prauc = None
+
+    # 5) thresholded metrics
+    P = float(precision_score(y_true, y_pred, zero_division=0))
+    R = float(recall_score(y_true, y_pred, zero_division=0))
+    F1 = float(f1_score(y_true, y_pred, zero_division=0))
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0,1]).ravel()
     fpr = float(fp / (fp + tn)) if (fp + tn) > 0 else 0.0
+    alert_rate = float((y_pred == 1).mean()) if len(y_pred) else 0.0
 
-    uniq = np.unique(y_true)
-    if len(uniq) == 1:
-        auc = float("nan")
-        prauc = float("nan")
-    else:
-        try: auc = float(roc_auc_score(y_true, y_score))
-        except: auc = float("nan")
-        try: prauc = float(average_precision_score(y_true, y_score))
-        except: prauc = float("nan")
-
-    f1 = float(f1_score(y_true, y_pred, zero_division=0))
-    precision = float(precision_score(y_true, y_pred, zero_division=0))
-    recall = float(recall_score(y_true, y_pred, zero_division=0))
-
-    alert_rate = float((y_pred == 1).mean())
-    alerts_per_million = float(alert_rate * 1_000_000)
-
-    def f1_at_alert_rate(target_rate):
-        if len(y_score) == 0: return float("nan"), float("nan")
-        q = max(0.0, min(1.0, 1.0 - target_rate))
-        t = float(np.quantile(y_score, q))
-        yp = (y_score > t).astype(int)
-        return float(f1_score(y_true, yp, zero_division=0)), t
-
-    f1_at_1pct, thr_1pct = f1_at_alert_rate(0.01)
-    f1_at_0_1pct, thr_0_1pct = f1_at_alert_rate(0.001)
-
-    out = {
+    return {
         "auc": auc,
         "prauc": prauc,
-        "f1": f1,
-        "precision": precision,
-        "recall": recall,
+        "precision": P,
+        "recall": R,
+        "f1": F1,
+        "tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp),
         "fpr": fpr,
         "threshold": float(thr),
         "alert_rate": alert_rate,
-        "alerts_per_million": alerts_per_million,
-        "f1_at_1pct": f1_at_1pct,
-        "thr_at_1pct": thr_1pct,
-        "f1_at_0_1pct": f1_at_0_1pct,
-        "thr_at_0_1pct": thr_0_1pct,
-        "cm": {"tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp)}
     }
-    # keep legacy flat keys so print/UI that expect them won’t break
-    out["tn"], out["fp"], out["fn"], out["tp"] = int(tn), int(fp), int(fn), int(tp)
-    return out
 
+def _fmt4(x):
+    """Format floats to 4dp; show 'n/a' for None/NaN/Inf."""
+    if x is None:
+        return "n/a"
+    try:
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            return "n/a"
+        return f"{x:.4f}"
+    except Exception:
+        return str(x)
 
 def main():
     ap = argparse.ArgumentParser()
@@ -225,9 +242,49 @@ def main():
     print(f"[OK] wrote {mpath}")
     if metrics:
         for k,v in metrics.items():
-            print(f"== {k.upper()} ==")
-            print(f"AUC={v['auc']:.4f}  PR-AUC={v['prauc']:.4f}  F1={v['f1']:.4f}  P={v['precision']:.4f}  R={v['recall']:.4f}  FPR={v['fpr']:.4f}")
-            print(f"TN={v['tn']} FP={v['fp']}  FN={v['fn']} TP={v['tp']}  thr={v['threshold']:.6f}")
+            v = metrics["content"]
+            print("== CONTENT ==")
+            print(
+                "AUC={auc}  PR-AUC={prauc}  F1={f1}  P={p}  R={r}  FPR={fpr}".format(
+                    auc=_fmt4(v["auc"]),
+                    prauc=_fmt4(v.get("prauc") or v.get("pr_auc")),
+                    f1=_fmt4(v["f1"]),
+                    p=_fmt4(v["precision"]),
+                    r=_fmt4(v["recall"]),
+                    fpr=_fmt4(v["fpr"]),
+                )
+            )
+            print(f"TN={v['tn']} FP={v['fp']}  FN={v['fn']} TP={v['tp']}  thr={_fmt4(v['threshold'])}")
+
+            # == SESSION ==
+            v = metrics["session"]
+            print("== SESSION ==")
+            print(
+                "AUC={auc}  PR-AUC={prauc}  F1={f1}  P={p}  R={r}  FPR={fpr}".format(
+                    auc=_fmt4(v["auc"]),
+                    prauc=_fmt4(v.get("prauc") or v.get("pr_auc")),
+                    f1=_fmt4(v["f1"]),
+                    p=_fmt4(v["precision"]),
+                    r=_fmt4(v["recall"]),
+                    fpr=_fmt4(v["fpr"]),
+                )
+            )
+            print(f"TN={v['tn']} FP={v['fp']}  FN={v['fn']} TP={v['tp']}  thr={_fmt4(v['threshold'])}")
+
+            # == FUSED ==
+            v = metrics["fused"]
+            print("== FUSED ==")
+            print(
+                "AUC={auc}  PR-AUC={prauc}  F1={f1}  P={p}  R={r}  FPR={fpr}".format(
+                    auc=_fmt4(v["auc"]),
+                    prauc=_fmt4(v.get("prauc") or v.get("pr_auc")),
+                    f1=_fmt4(v["f1"]),
+                    p=_fmt4(v["precision"]),
+                    r=_fmt4(v["recall"]),
+                    fpr=_fmt4(v["fpr"]),
+                )
+            )
+            print(f"TN={v['tn']} FP={v['fp']}  FN={v['fn']} TP={v['tp']}  thr={_fmt4(v['threshold'])}")
 
 if __name__ == "__main__":
     main()
