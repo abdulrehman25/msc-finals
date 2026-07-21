@@ -114,7 +114,72 @@ Sixth, we compare our system with simple baseline methods: Random Forest, which 
 Together, these results show that a two-part fusion system can work well across different kinds of web log data, and that fixing how sessions are built and how thresholds are set can matter as much as the choice of model itself.
 
 \section{Related Work} \label{sec3}
-%TODO: next section to draft.
+
+\subsection{Anomaly Detection in Web Server Logs}
+
+Web server logs record every request a server handles. Each line usually has the request method, the URL, the response code, the time, and the client's IP address. Security teams can use these logs to find attacks, but there are far too many lines to check by hand. For a long time, most systems used rules or signatures to spot bad requests~\cite{scarfone2007}. Rules like this work well for known attacks, but they cannot catch new or changed attacks, because they only look for patterns someone has already written down. This is why anomaly detection is useful: instead of matching known attack patterns, it learns what normal traffic looks like and flags anything that looks different~\cite{chandola2009}. This can catch attacks that have never been seen before, but it is harder to build well, because normal web traffic changes over time and attacks are a very small part of all traffic.
+
+\subsection{Classical Machine Learning Methods}
+
+Before deep learning became common, many studies used classic machine learning methods for this problem. Isolation Forest is one of the most used. It works by randomly splitting the data again and again; points that get cut off quickly, after only a few splits, are treated as anomalies~\cite{liu2008}. This method does not need labelled attack data, runs fast, and is simple to set up, which is why it is still used today. For example, one recent study applied Isolation Forest directly to web traffic logs from an e-commerce site and showed it can tell normal and anomalous requests apart without needing attack labels~\cite{chua2024}. Other classic methods, such as clustering and one-class classifiers, have also been used, but they often need features to be picked and built by hand, and they can struggle when the traffic pattern changes.
+
+\subsection{Content-Based Deep Learning}
+
+Deep learning removes the need for hand-built features by learning directly from the raw or lightly processed request data. One common approach is the autoencoder. An autoencoder learns to compress a normal request into a small representation and then rebuild it. If the model is trained only on normal requests, it becomes good at rebuilding normal requests but bad at rebuilding attack requests, so a request with a high rebuild error can be flagged as an anomaly. One study used this idea end to end, training a deep autoencoder directly on HTTP requests, and showed it could detect attacks such as SQL injection and cross-site scripting without needing much labelled data~\cite{pan2019}. Models like this are good at finding strange or broken single requests, but they look at each request on its own, so they cannot see attacks that only show up across many requests over time.
+
+\subsection{Behaviour-Based Deep Learning}
+
+To catch attacks that unfold over several requests, other work models the order and pattern of requests instead of looking at single requests. LSTM networks are built for this, since they can learn from a sequence of past events. DeepLog treats a stream of log lines like a sentence, learning the normal order of events and flagging any sequence that breaks the learned pattern~\cite{du2017}. Later work used a self-attention model, instead of or alongside an LSTM, to learn which parts of a log sequence matter most for telling normal and abnormal apart~\cite{nedelkoski2020}. Closer to our own work, one study built a variational LSTM autoencoder combined with a deviation network, trained directly on HTTP weblogs, and showed it can detect web attacks by modelling normal session behaviour~\cite{jagat2024}. Behaviour-based models like these can catch attacks that content-based models miss, such as scanning or repeated probing, but they need enough real, connected requests from the same client to learn from. If a client only sends one or two requests, there is no real sequence to learn from -- a point this paper returns to directly in Section~\ref{sec5}.
+
+\subsection{Hybrid and Fusion-Based Detection}
+
+Since content-based and behaviour-based models catch different kinds of attacks, several studies combine both into one system. The idea is to score each request or session with more than one model, then merge the scores into a single final decision. This kind of hybrid, fusion-based design has been shown to work better than either model alone, especially when labelled attack data is scarce and normal traffic looks very different from attack traffic~\cite{kamal2025}. Building a good fusion system is not simple, though: the two branches usually need to be trained and set up carefully so that one does not drown out the other, and the merged score still needs its own threshold.
+
+\subsection{Cross-Dataset Evaluation}
+
+Most of the studies above are tested on a single dataset. This is a real problem, because a model that works well on the data it was tuned on may not work as well on new data with a different shape, format, or mix of attacks. Building good benchmark datasets for intrusion detection, and testing across more than one of them, has long been seen as important for getting results that mean something outside the exact dataset used~\cite{shiravi2012}. A recent study looked at this problem directly for network intrusion detection: models that scored close to perfect when trained and tested on the same dataset dropped close to random guessing when tested on a different dataset, showing how easy it is to overstate a model's real performance with single-dataset testing~\cite{cantone2024}. This is the exact gap this paper addresses for web server logs: testing across more than one log format, and running a true cross-dataset threshold test, where the decision threshold is set once and never changed for new data.
+
+\subsection{Summary}
+
+Table~\ref{tab:lit_review} lists the studies discussed above, the kind of method each one uses, the kind of data it was tested on, and the main gap that this paper tries to close.
+
+\begin{table}[H]
+\caption{Summary of related studies on web and log anomaly detection.}
+\label{tab:lit_review}
+\scriptsize
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{tabularx}{\fulllength}{l l l l m{4.5cm}<{\raggedright}}
+\toprule
+\textbf{Study} & \textbf{Method} & \textbf{Data Type} & \textbf{Evaluation} & \textbf{Main Limitation} \\
+\midrule
+
+Scarfone and Mell~(2007)~\cite{scarfone2007} & Rule-based IDS/IPS guidance & Network traffic & Guidance document & Rules only catch known attack patterns \\
+
+Chandola et al.~(2009)~\cite{chandola2009} & Survey & General & Review study & No single detector proposed \\
+
+Liu et al.~(2008)~\cite{liu2008} & Isolation Forest & General tabular data & Benchmark datasets & Not evaluated on web request logs \\
+
+Chua et al.~(2024)~\cite{chua2024} & Isolation Forest & Web traffic logs & Single dataset & Single detection view, no behaviour model \\
+
+Pan et al.~(2019)~\cite{pan2019} & Stacked denoising autoencoder & HTTP requests & Single dataset & Scores single requests only, no session view \\
+
+Du et al.~(2017)~\cite{du2017} & LSTM (DeepLog) & System logs & Single dataset & Not web-request specific \\
+
+Nedelkoski et al.~(2020)~\cite{nedelkoski2020} & Self-attention classifier & Unstructured logs & Single dataset & No cross-dataset test reported \\
+
+Jagat et al.~(2024)~\cite{jagat2024} & Variational LSTM autoencoder + deviation network & HTTP weblogs & Single dataset & No content-based branch, single dataset \\
+
+Kamal and Mashaly~(2025)~\cite{kamal2025} & Hybrid deep learning IDS & Network traffic & Single dataset & Single dataset, not web-log specific \\
+
+Shiravi et al.~(2012)~\cite{shiravi2012} & Benchmark dataset design & Network traffic & Dataset study & Dataset paper, no detection model \\
+
+Cantone et al.~(2024)~\cite{cantone2024} & Multiple classical ML models & Network traffic & Cross-dataset & Not applied to web-log or hybrid deep models \\
+
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}
+\unskip
 
 \section{Materials and Methods} \label{sec4}
 %TODO: next section to draft.
@@ -153,6 +218,18 @@ Kamal, H.; Mashaly, M. Enhanced Hybrid Deep Learning Models-Based Anomaly Detect
 
 \bibitem[Shiravi et al.(2012)]{shiravi2012}
 Shiravi, A.; Shiravi, H.; Tavallaee, M.; Ghorbani, A.A. Toward developing a systematic approach to generate benchmark datasets for intrusion detection. \emph{Comput. Secur.} \textbf{2012}, \emph{31}, 357--374. \url{https://doi.org/10.1016/j.cose.2011.12.012}.
+
+\bibitem[Liu et al.(2008)]{liu2008}
+Liu, F.T.; Ting, K.M.; Zhou, Z.-H. Isolation Forest. In Proceedings of the 2008 Eighth IEEE International Conference on Data Mining (ICDM), Pisa, Italy, 15--19 December 2008; pp. 413--422. \url{https://doi.org/10.1109/ICDM.2008.17}.
+
+\bibitem[Chua et al.(2024)]{chua2024}
+Chua, W.; Pajas, A.L.D.; Castro, C.S.; Panganiban, S.P.; Pasuquin, A.J.; Purganan, M.J.; Malupeng, R.; Pingad, D.J.; Orolfo, J.P.; Lua, H.H.; et al. Web Traffic Anomaly Detection Using Isolation Forest. \emph{Informatics} \textbf{2024}, \emph{11}, 83. \url{https://doi.org/10.3390/informatics11040083}.
+
+\bibitem[Pan et al.(2019)]{pan2019}
+Pan, Y.; Sun, F.; Teng, Z.; White, J.; Schmidt, D.C.; Staples, J.; Krause, L. Detecting web attacks with end-to-end deep learning. \emph{J. Internet Serv. Appl.} \textbf{2019}, \emph{10}, 16. \url{https://doi.org/10.1186/s13174-019-0115-x}.
+
+\bibitem[Cantone et al.(2024)]{cantone2024}
+Cantone, M.; Marrocco, C.; Bria, A. Machine learning in network intrusion detection: A cross-dataset generalization study. \emph{IEEE Access} \textbf{2024}, \emph{12}, 144489--144508. \url{https://doi.org/10.1109/ACCESS.2024.3472907}.
 
 \end{thebibliography}
 \end{adjustwidth}
