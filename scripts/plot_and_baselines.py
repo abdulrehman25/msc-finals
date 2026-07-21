@@ -28,7 +28,8 @@ from sklearn.metrics import (
     roc_curve, precision_recall_curve, auc, confusion_matrix,
     precision_score, recall_score, f1_score, roc_auc_score, average_precision_score
 )
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, IsolationForest
+from sklearn.svm import OneClassSVM
 
 # project imports (editable install recommended)
 from featurization.features import line_to_vector
@@ -115,12 +116,16 @@ def _find_predictions(stem: str) -> Optional[Path]:
     return p if p.exists() else None
 
 def _find_labels_for_stem(stem: str, labels_root: Optional[Path]) -> Optional[Path]:
-    # Try explicit root first (recursive)
+    # Try explicit root first (recursive). Canonical sidecar naming is
+    # "<stem>.log.labels.txt"; ".labels.txt" (no ".log") is also accepted
+    # for backward compatibility with stray/duplicate files.
     candidates: List[Path] = []
     if labels_root and labels_root.exists():
-        for p in labels_root.rglob(f"{stem}.labels.txt"):
-            candidates.append(p)
+        for pattern in (f"{stem}.log.labels.txt", f"{stem}.labels.txt"):
+            for p in labels_root.rglob(pattern):
+                candidates.append(p)
     # Try eval dir (rare)
+    candidates.append(EVAL_DIR / f"{stem}.log.labels.txt")
     candidates.append(EVAL_DIR / f"{stem}.labels.txt")
     for c in candidates:
         if c.exists():
@@ -177,6 +182,10 @@ def _rf_train_and_plot(X: np.ndarray, y: np.ndarray, n_trees: int, tag: str):
     split = int(0.8 * n)
     tr, te = idx[:split], idx[split:]
     Xtr, Xte, ytr, yte = X[tr], X[te], y[tr], y[te]
+
+    if len(np.unique(ytr)) < 2:
+        print(f"[RF] {tag}: skipped (training split has a single class -- dataset has no attack samples)")
+        return None
 
     rf = RandomForestClassifier(
         n_estimators=n_trees,
@@ -249,6 +258,104 @@ def _rf_train_and_plot(X: np.ndarray, y: np.ndarray, n_trees: int, tag: str):
     plt.close()
 
     print(f"[RF] {tag}: tn={tn} fp={fp} fn={fn} tp={tp} | AUC={auc_roc:.4f} PR-AUC={pr_auc:.4f} F1={F1:.4f} P={P:.4f} R={R:.4f}")
+
+    metrics = {"auc": float(auc_roc), "prauc": float(pr_auc), "f1": float(F1),
+               "precision": float(P), "recall": float(R), "fpr": float(fpr_val)}
+    (EVAL_DIR / f"baseline_metrics_rf_{tag}.json").write_text(json.dumps(metrics, indent=2))
+    return metrics
+
+def _unsupervised_train_and_plot(X: np.ndarray, y: np.ndarray, tag: str, kind: str, max_train_benign: Optional[int] = None):
+    """Shared driver for Isolation Forest / One-Class SVM baselines.
+
+    Unlike the supervised RF baseline, these are fit on BENIGN-ONLY training
+    rows (the correct comparison point against the benign-trained content-AE
+    / session-LSTM-VAE branches). Anomaly threshold is the p95 percentile of
+    the training-benign fold's own score, applied to the held-out test fold
+    -- the same in-sample percentile convention used elsewhere in this repo.
+    """
+    n = len(y)
+    idx = np.arange(n)
+    rng = np.random.default_rng(42)
+    rng.shuffle(idx)
+    split = int(0.8 * n)
+    tr, te = idx[:split], idx[split:]
+    Xtr, Xte, ytr, yte = X[tr], X[te], y[tr], y[te]
+
+    Xtr_benign = Xtr[ytr == 0]
+    if max_train_benign and len(Xtr_benign) > max_train_benign:
+        sel = rng.choice(len(Xtr_benign), size=max_train_benign, replace=False)
+        Xtr_benign = Xtr_benign[sel]
+
+    if len(Xtr_benign) == 0:
+        print(f"[{kind}] {tag}: no benign rows in training split, skipping")
+        return None
+
+    if kind == "iforest":
+        model = IsolationForest(n_estimators=200, random_state=42)
+        model.fit(Xtr_benign)
+        score_train = -model.score_samples(Xtr_benign)  # higher = more anomalous
+        score_test = -model.score_samples(Xte)
+    elif kind == "ocsvm":
+        model = OneClassSVM(kernel="rbf", nu=0.05)
+        model.fit(Xtr_benign)
+        score_train = -model.decision_function(Xtr_benign)
+        score_test = -model.decision_function(Xte)
+    else:
+        raise ValueError(kind)
+
+    thr = float(np.percentile(score_train, 95))
+    yhat = (score_test > thr).astype(int)
+
+    cm = confusion_matrix(yte, yhat, labels=[0, 1])
+    tn, fp, fn, tp = cm.ravel()
+    try: auc_roc = roc_auc_score(yte, score_test)
+    except Exception: auc_roc = float("nan")
+    try: pr_auc = average_precision_score(yte, score_test)
+    except Exception: pr_auc = float("nan")
+    P = precision_score(yte, yhat, zero_division=0)
+    R = recall_score(yte, yhat, zero_division=0)
+    F1 = f1_score(yte, yhat, zero_division=0)
+    fpr_val = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+
+    if len(np.unique(yte)) >= 2:
+        fpr_arr, tpr_arr, _ = roc_curve(yte, score_test)
+        plt.figure(figsize=(7, 5))
+        plt.plot(fpr_arr, tpr_arr, label=f"AUC={auc_roc:.3f}")
+        plt.plot([0, 1], [0, 1], '--')
+        plt.xlabel("False Positive Rate"); plt.ylabel("True Positive Rate")
+        plt.title(f"{kind.upper()} • ROC • {tag}")
+        plt.legend(); plt.tight_layout()
+        plt.savefig(PLOTS_DIR / f"{kind}_roc_{tag}.png", dpi=160)
+        plt.close()
+
+        prec, rec, _ = precision_recall_curve(yte, score_test)
+        plt.figure(figsize=(7, 5))
+        plt.plot(rec, prec, label=f"PR-AUC={pr_auc:.3f}")
+        plt.xlabel("Recall"); plt.ylabel("Precision")
+        plt.title(f"{kind.upper()} • PR • {tag}")
+        plt.legend(); plt.tight_layout()
+        plt.savefig(PLOTS_DIR / f"{kind}_pr_{tag}.png", dpi=160)
+        plt.close()
+
+    plt.figure(figsize=(5, 4))
+    plt.imshow(cm, interpolation="nearest")
+    plt.title(f"{kind.upper()} Confusion • {tag}\nF1={F1:.3f}, P={P:.3f}, R={R:.3f}, FPR={fpr_val:.3f}")
+    plt.xticks([0, 1], ["Pred 0", "Pred 1"])
+    plt.yticks([0, 1], ["True 0", "True 1"])
+    for (i, j), v in np.ndenumerate(cm):
+        plt.text(j, i, str(v), ha="center", va="center")
+    plt.tight_layout()
+    plt.savefig(PLOTS_DIR / f"{kind}_confusion_{tag}.png", dpi=160)
+    plt.close()
+
+    print(f"[{kind.upper()}] {tag}: benign_train={len(Xtr_benign)}/{len(Xtr)} tn={tn} fp={fp} fn={fn} tp={tp} "
+          f"| AUC={auc_roc:.4f} PR-AUC={pr_auc:.4f} F1={F1:.4f} P={P:.4f} R={R:.4f}")
+
+    metrics = {"auc": float(auc_roc), "prauc": float(pr_auc), "f1": float(F1),
+               "precision": float(P), "recall": float(R), "fpr": float(fpr_val),
+               "n_train_benign": int(len(Xtr_benign)), "n_train_total": int(len(Xtr))}
+    (EVAL_DIR / f"baseline_metrics_{kind}_{tag}.json").write_text(json.dumps(metrics, indent=2))
+    return metrics
 
 # -------------------- modes --------------------
 
@@ -398,6 +505,80 @@ def do_rf_all(logs_root: Path, n_trees: int):
         _rf_train_and_plot(X, y, n_trees, tag)
     print("[DONE] rf-all finished.")
 
+def _find_log_label_pairs(logs_root: Path) -> List[Tuple[Path, Path]]:
+    pairs = []
+    for p in logs_root.rglob("*.log"):
+        lab = p.with_suffix(p.suffix + ".labels.txt")
+        if lab.exists():
+            pairs.append((p, lab))
+        else:
+            alt = p.with_suffix("").with_suffix(".labels.txt")
+            if alt.exists():
+                pairs.append((p, alt))
+    return pairs
+
+def do_unsupervised(log_path: Path, labels_path: Path, kind: str, max_train_benign: Optional[int]):
+    X, y = _load_log_with_labels(log_path, labels_path)
+    if X.size == 0 or y.size == 0:
+        print(f"[ERR] [{kind}] no data after parsing/aligning")
+        return
+    tag = Path(log_path).stem
+    _unsupervised_train_and_plot(X, y, tag, kind, max_train_benign)
+
+def do_unsupervised_all(logs_root: Path, kind: str, max_train_benign: Optional[int]):
+    pairs = _find_log_label_pairs(logs_root)
+    if not pairs:
+        print(f"[ERR] [{kind}-all] no (log,labels) pairs found under {logs_root}")
+        return
+    for log_path, labels_path in pairs:
+        print(f"[{kind}-all] {log_path.name}  +  {labels_path.name}")
+        X, y = _load_log_with_labels(log_path, labels_path)
+        if X.size == 0 or y.size == 0:
+            print("  [WARN] skipped (no data after parsing/aligning)")
+            continue
+        tag = Path(log_path).stem
+        _unsupervised_train_and_plot(X, y, tag, kind, max_train_benign)
+    print(f"[DONE] {kind}-all finished.")
+
+def do_baseline_comparison():
+    """Compile content-AE / session-LSTM-VAE / fused (from metrics_*.json) and
+    RF / IsolationForest / OneClassSVM (from baseline_metrics_*_<tag>.json)
+    into one comparison CSV."""
+    df = load_all_metrics()
+    if df.empty:
+        print("[ERR] No metrics_*.json found in artifacts/eval/")
+        return
+    # Exclude the orphaned access_long_session_300 artifact: it has no label
+    # sidecar anywhere in the repo and predates the current metrics schema.
+    stems = sorted(s for s in df["dataset"].unique() if s != "access_long_session_300")
+    rows = []
+    for stem in stems:
+        row = {"dataset": stem}
+        for branch in ["content", "session", "fused"]:
+            sub = df[(df["dataset"] == stem) & (df["branch"] == branch)]
+            row[f"{branch}_auc"] = sub["auc"].iloc[0] if not sub.empty else None
+            row[f"{branch}_f1"] = sub["f1"].iloc[0] if not sub.empty else None
+        for kind in ["rf", "iforest", "ocsvm"]:
+            bpath = EVAL_DIR / f"baseline_metrics_{kind}_{stem}.json"
+            if bpath.exists():
+                bm = json.loads(bpath.read_text())
+                row[f"{kind}_auc"] = bm.get("auc")
+                row[f"{kind}_f1"] = bm.get("f1")
+                row[f"{kind}_fpr"] = bm.get("fpr")
+            else:
+                row[f"{kind}_auc"] = row[f"{kind}_f1"] = row[f"{kind}_fpr"] = None
+        rows.append(row)
+
+    cols = (["dataset", "content_auc", "content_f1", "session_auc", "session_f1",
+             "fused_auc", "fused_f1"] +
+            [f"{k}_{m}" for k in ["rf", "iforest", "ocsvm"] for m in ["auc", "f1", "fpr"]])
+    out_csv = EVAL_DIR / "baseline_comparison.csv"
+    with open(out_csv, "w") as f:
+        f.write(",".join(cols) + "\n")
+        for r in rows:
+            f.write(",".join("" if r.get(c) is None else str(r[c]) for c in cols) + "\n")
+    print(f"[OK] wrote {out_csv} ({len(rows)} datasets)")
+
 # -------------------- CLI --------------------
 
 def main():
@@ -422,6 +603,18 @@ def main():
     rf_all.add_argument("--logs-root", required=True, help="folder containing logs and labels (recursive)")
     rf_all.add_argument("--trees", type=int, default=300)
 
+    for kind in ("iforest", "ocsvm"):
+        p1 = sub.add_parser(kind, help=f"Train & plot {kind} (unsupervised, benign-only) baseline on a log+labels pair")
+        p1.add_argument("--log", required=True)
+        p1.add_argument("--labels", required=True)
+        p1.add_argument("--max-train-benign", type=int, default=None, help="Cap benign training rows (useful for large datasets)")
+
+        p2 = sub.add_parser(f"{kind}-all", help=f"Train & plot {kind} on ALL (log,labels) pairs under a folder (recursive)")
+        p2.add_argument("--logs-root", required=True)
+        p2.add_argument("--max-train-benign", type=int, default=None)
+
+    sub.add_parser("baseline-comparison", help="Compile content/session/fused + RF/IForest/OCSVM into baseline_comparison.csv")
+
     args = ap.parse_args()
 
     if args.cmd == "agg":
@@ -436,6 +629,12 @@ def main():
         do_rf(Path(args.log), Path(args.labels), args.trees)
     elif args.cmd == "rf-all":
         do_rf_all(Path(args.logs_root), args.trees)
+    elif args.cmd in ("iforest", "ocsvm"):
+        do_unsupervised(Path(args.log), Path(args.labels), args.cmd, args.max_train_benign)
+    elif args.cmd in ("iforest-all", "ocsvm-all"):
+        do_unsupervised_all(Path(args.logs_root), args.cmd.replace("-all", ""), args.max_train_benign)
+    elif args.cmd == "baseline-comparison":
+        do_baseline_comparison()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,145 @@
+%=================================================================
+% DRAFT MANUSCRIPT -- work in progress, section by section.
+% Mirrors the structure/format of futureinternet-4330203-done (1).tex
+% (Nouman, Ujjan & Hassanu, MDPI Future Internet), per the same
+% supervisor's template, adapted to this project's own dataset,
+% methods, and results (see artifacts/paper/tables and thesis_context
+% memory for the underlying numbers).
+%
+% NOTE: Definitions/mdpi.cls is NOT yet present in this repo (the peer
+% .tex file references it but the class files weren't included when
+% the reference files were added). This document cannot be compiled
+% until that class is sourced from MDPI's submission template. Content
+% is being drafted in full MDPI-command form now so nothing needs to
+% be rewritten once the class is available -- only the \documentclass
+% line and packages need the real class file to render.
+%=================================================================
+\documentclass[futureinternet,article,accept,moreauthors]{Definitions/mdpi}
+
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+\externaleditor{Firstname Lastname}
+\datereceived{ }
+\daterevised{ }
+\dateaccepted{ }
+\datepublished{ }
+\hreflink{https://doi.org/}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{changepage}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+
+%=================================================================
+% TITLE -- DRAFT, needs confirmation. Mirrors the peer paper's
+% "[qualifier] Anomaly Detection for [traffic] Using [method A] with
+% [method B]" pattern.
+\Title{Content- and Session-Aware Anomaly Detection for Web Server Logs Using a Fused Autoencoder and Variational LSTM Framework: A Cross-Dataset Evaluation}
+
+% AUTHOR BLOCK -- DRAFT. Matches the peer paper's author-role pattern
+% (student first/corresponding author, supervisor + moderator as
+% co-authors). NOTE: the moderator's name is spelled inconsistently
+% across source documents ("Muhsin Husseinu" on the thesis title page,
+% "Muhsin Hussenu" in the thesis body/acknowledgements, "Muhsin
+% Hassanu" in the peer paper) -- needs to be confirmed with the
+% moderator directly before submission, not guessed.
+\Author{Abdul Rehman *, Raja Ujjan and Muhsin Hussenu *}
+
+\AuthorNames{Abdul Rehman, Raja Ujjan, and Muhsin Hussenu}
+
+\address[1]{Department of Computing and Cybersecurity, University of the West of Scotland, London Campus, London E14 2BA, UK}
+
+\corres{Correspondence: [student email TBD] (A.R.)}
+
+\abstract{%TODO: write after Results/Discussion are finalized, so the
+reported numbers are locked. Draft note: should mirror the peer
+paper's abstract shape -- motivation, gap, framework summary,
+datasets, headline quantitative results, one-sentence takeaway.
+Numbers to pull from once ready: artifacts/paper/tables/ablation_table.csv,
+fusion_sweep.csv, threshold_transfer.csv, baseline_comparison.csv,
+latency_benchmark.json, session_v1_vs_v2.csv (source of truth --
+not the original thesis Table 5.6 figures, several of which this
+re-run diverges from).}
+
+\keyword{web server logs; anomaly detection; autoencoder; variational LSTM; session modelling; score fusion; cross-dataset generalisation}
+
+\begin{document}
+
+\section{Introduction}
+
+Web applications underpin most critical digital services in use today, from banking and healthcare to e-commerce and cloud infrastructure, and their continuous, public-facing exposure makes them a persistent target for attackers~\cite{scarfone2007}. Every request a web server processes is recorded in an access log, together with metadata such as the request method, path, response status, and client identifiers. These logs are one of the richest available sources of security-relevant information: in principle, they capture both the legitimate use of an application and the traces left by attackers probing or exploiting it. In practice, however, the volume and variety of this data make manual inspection infeasible for any application of meaningful scale, and organisations have long relied on signature-based intrusion detection and rule-based filtering to triage it~\cite{scarfone2007}.
+
+Signature- and rule-based approaches are effective against known attack patterns but are structurally unable to detect zero-day or previously unseen attacks, since they can only recognise what has already been catalogued. This has motivated a shift towards anomaly detection, which instead models what \emph{normal} traffic looks like and flags deviations from it, without requiring the deviation to match a predefined signature~\cite{chandola2009}. Anomaly detection is a natural fit for web security because it does not depend on a labelled corpus of known attacks -- which is difficult to obtain, quickly goes stale, and can never be assumed complete -- but it introduces its own difficulties. Web traffic is highly non-stationary: normal behaviour drifts as applications change, and it can vary enormously between different endpoints, user populations, and even times of day. Attack traffic is also typically a tiny fraction of the total volume, so any evaluation of an anomaly detector must be designed around severe class imbalance rather than raw accuracy~\cite{chandola2009}.
+
+Deep learning has extended anomaly detection to log and web-traffic data by learning representations directly from raw or lightly processed records, rather than requiring hand-engineered features. Sequence models such as LSTMs have been used to learn the normal structure of a stream of log events and flag deviations from it~\cite{nedelkoski2020}, and DeepLog demonstrated that treating a system log as a natural-language-like sequence allows an LSTM to learn normal execution patterns and detect anomalies as departures from them~\cite{du2017}. Applied to HTTP traffic specifically, this behavioural, sequence-oriented view is complementary to a second, request-level view: individual HTTP requests can themselves be modelled directly, using an autoencoder trained to reconstruct the structural and payload characteristics of normal requests, so that unusually large reconstruction error flags anomalous content such as injection payloads or malformed parameters. Recent work combining a variational LSTM autoencoder with a deviation network for exactly this purpose has shown that this class of model is well suited to detecting web attacks directly from HTTP weblogs~\cite{jagat2024}.
+
+These two views, however, are not interchangeable. A content-based model that scores individual requests in isolation cannot see attacks that only become apparent across a sequence of otherwise unremarkable requests -- reconnaissance-style scanning, credential stuffing, or low-and-slow probing, for example, where each individual request may be syntactically valid. A behaviour-based model that scores sequences of requests grouped by client can catch exactly this class of attack, but it depends on there being a genuine sequence to model in the first place: if a client only issues one or two requests, or if requests from a given client cannot be reliably grouped together, there is no behavioural signal to learn from. This dependency on session structure is not merely a theoretical caveat -- as this study's own experiments later show (Section~\ref{sec5}), it materially determines whether a session-based branch can contribute anything at all for a given traffic sample.
+
+Because content-based and behaviour-based detectors fail in different, largely non-overlapping ways, combining their outputs is a natural way to cover more of the attack surface than either can alone. Hybrid, fusion-based frameworks that integrate multiple detection signals have been shown to improve robustness and stability relative to single-model detectors, particularly under the kind of severe class imbalance and limited labelled data that characterises real security settings~\cite{kamal2025}. Realising this benefit in practice, however, depends heavily on how the resulting system is evaluated. A large share of the anomaly-detection literature reports results on a single dataset, which risks overstating how well a method will generalise once deployed against traffic with different structure, format, or attack composition than whatever it was tuned against. This concern is well established in the wider intrusion-detection literature, where the design of benchmark datasets themselves -- their realism, diversity, and reproducibility -- has long been recognised as a determining factor in whether reported results are meaningful outside the dataset they were produced on~\cite{shiravi2012}.
+
+Despite the individual maturity of content-based autoencoders, behaviour-based sequence models, and fusion-based detection frameworks, their combined application to web server logs specifically, evaluated across genuinely different log formats and under a strict cross-dataset protocol -- where a detection threshold is fixed on one data source and applied unchanged to others, rather than recalibrated on each dataset in turn -- remains underexplored. Many studies that do combine content and behavioural signals validate the result on a single log format and a single traffic sample, leaving open how such a system behaves when the underlying session structure, log schema, or class balance of the target traffic differs substantially from what the model was built on.
+
+To address this gap, this work presents a hybrid anomaly detection framework for web server logs that combines a content-based autoencoder, trained to reconstruct the structural features of individual HTTP requests, with a session-based variational LSTM autoencoder, trained on genuine per-client request sequences rather than an arbitrary sliding window over the raw log stream. The outputs of the two branches are combined through score-level fusion, and the resulting framework is evaluated not only within a single dataset but across three structurally different sources: two self-generated Apache-style access-log corpora and a structured Nginx JSON log, together with the publicly available CSIC~2010 HTTP dataset, which additionally serves as the source domain for a cross-dataset threshold-transfer evaluation in which a single fixed decision threshold, calibrated once on genuinely benign traffic, is applied unchanged to unseen target datasets.
+
+The remainder of this paper is organised as follows. Section~\ref{sec2} sets out the specific contributions of this work. Section~\ref{sec3} reviews related work on anomaly detection for web and log data, content- and behaviour-based deep learning models, and hybrid/fusion-based detection frameworks. Section~\ref{sec4} describes the datasets, preprocessing, feature representation, model architectures, and evaluation protocol. Section~\ref{sec5} presents the experimental results, including the branch ablation, fusion-weight sensitivity, classical-baseline comparison, and cross-dataset threshold-transfer experiments. Section~\ref{sec6} discusses these findings and their practical implications, and Section~\ref{sec7} concludes the paper and outlines directions for future work.
+
+\section{Research Contributions} \label{sec2}
+%TODO: next section to draft.
+
+\section{Related Work} \label{sec3}
+%TODO: next section to draft.
+
+\section{Materials and Methods} \label{sec4}
+%TODO: next section to draft.
+
+\section{Results} \label{sec5}
+%TODO: next section to draft. Source data: artifacts/paper/tables/{ablation_table,fusion_sweep,threshold_transfer,baseline_comparison,session_v1_vs_v2}.csv, latency_benchmark.json.
+
+\section{Discussion} \label{sec6}
+%TODO: next section to draft.
+
+\section{Conclusions} \label{sec7}
+%TODO: next section to draft.
+
+%=================================================================
+\begin{adjustwidth}{-\extralength}{0cm}
+\reftitle{References}
+\begin{thebibliography}{999}
+
+\bibitem[Scarfone and Mell(2007)]{scarfone2007}
+Scarfone, K.; Mell, P. \emph{Guide to Intrusion Detection and Prevention Systems (IDPS)}; NIST Special Publication 800-94; National Institute of Standards and Technology: Gaithersburg, MD, USA, 2007. \url{https://doi.org/10.6028/NIST.SP.800-94}.
+
+\bibitem[Chandola et al.(2009)]{chandola2009}
+Chandola, V.; Banerjee, A.; Kumar, V. Anomaly detection: A survey. \emph{ACM Comput. Surv.} \textbf{2009}, \emph{41}, 15. \url{https://doi.org/10.1145/1541880.1541882}.
+
+\bibitem[Nedelkoski et al.(2020)]{nedelkoski2020}
+Nedelkoski, S.; Bogatinovski, J.; Acker, A.; Cardoso, J.; Kao, O. Self-Attentive Classification-Based Anomaly Detection in Unstructured Logs. In Proceedings of the 2020 IEEE International Conference on Data Mining (ICDM), Sorrento, Italy, 17--20 November 2020; pp. 1196--1201. \url{https://arxiv.org/abs/2008.09340}.
+
+\bibitem[Du et al.(2017)]{du2017}
+Du, M.; Li, F.; Zheng, G.; Srikumar, V. DeepLog: Anomaly Detection and Diagnosis from System Logs through Deep Learning. In Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security (CCS), Dallas, TX, USA, 30 October--3 November 2017; pp. 1285--1298.
+
+\bibitem[Jagat et al.(2024)]{jagat2024}
+Jagat, R.R.; Sisodia, D.S.; Singh, P. Detecting Web Attacks From HTTP Weblogs Using Variational LSTM Autoencoder Deviation Network. \emph{IEEE Trans. Serv. Comput.} \textbf{2024}, \emph{17}, 2210--2222. \url{https://doi.org/10.1109/TSC.2024.3453748}.
+
+\bibitem[Kamal and Mashaly(2025)]{kamal2025}
+Kamal, H.; Mashaly, M. Enhanced Hybrid Deep Learning Models-Based Anomaly Detection Method for Two-Stage Binary and Multi-Class Classification of Attacks in Intrusion Detection Systems. \emph{Algorithms} \textbf{2025}, \emph{18}, 69. \url{https://doi.org/10.3390/a18020069}.
+
+\bibitem[Shiravi et al.(2012)]{shiravi2012}
+Shiravi, A.; Shiravi, H.; Tavallaee, M.; Ghorbani, A.A. Toward developing a systematic approach to generate benchmark datasets for intrusion detection. \emph{Comput. Secur.} \textbf{2012}, \emph{31}, 357--374. \url{https://doi.org/10.1016/j.cose.2011.12.012}.
+
+\end{thebibliography}
+\end{adjustwidth}
+
+\end{document}

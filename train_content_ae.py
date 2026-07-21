@@ -24,7 +24,11 @@ def main():
     ap.add_argument("--max-lines", type=int, default=None, help="Optional cap for quick runs")
     ap.add_argument("--bad-lines-out", default=None, help="Write unparsable lines here")
     ap.add_argument("--percentile", type=float, default=95.0, help="Threshold percentile (e.g., 95)")
+    ap.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     args = ap.parse_args()
+
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
 
     # --- Load and featurize (robust; skips broken lines) ---
     X, skipped = read_vectors_from_log(args.log, max_lines=args.max_lines, bad_out=args.bad_lines_out)

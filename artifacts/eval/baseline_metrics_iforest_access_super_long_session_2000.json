@@ -1,0 +1,10 @@
+{
+  "auc": NaN,
+  "prauc": 0.0,
+  "f1": 0.0,
+  "precision": 0.0,
+  "recall": 0.0,
+  "fpr": 0.0525,
+  "n_train_benign": 1600,
+  "n_train_total": 1600
+}

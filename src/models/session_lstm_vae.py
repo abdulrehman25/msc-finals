@@ -11,6 +11,8 @@ class SessionLSTMVAE(nn.Module):
         self.out = nn.Linear(lstm_hidden, input_dim)
 
     def reparam(self, mu, logvar):
+        if not self.training:
+            return mu
         std = torch.exp(0.5*logvar)
         eps = torch.randn_like(std)
         return mu + eps*std

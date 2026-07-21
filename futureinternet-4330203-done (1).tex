@@ -1,0 +1,921 @@
+%=================================================================
+\documentclass[futureinternet,article,accept,moreauthors]{Definitions/mdpi}
+% For posting an early version of this manuscript as a preprint, you may use "preprints" as the journal. Changing "submit" to "accept" before posting will remove line numbers.
+
+%--------------------
+% Class Options:
+%--------------------
+%----------
+% journal
+%----------
+% Choose between the following MDPI journals:
+% accountaudit, acoustics, actuators, addictions, adhesives, adolescents, aerobiology, aerospace, agriculture, agriengineering, agrochemicals, agronomy, ai, aichem, aieng, aimater, aimed, aipa, air, aisens, algorithms, allergies, alloys, amh, analog, analytica, analytics, anatomia, anesthres, animals, antibiotics, antibodies, antioxidants, applbiosci, appliedchem, appliedmath, appliedphys, applmech, applmicrobiol, applnano, applsci, aquacj, architecture, arm, arthropoda, asc, asi, astronautics, astronomy, atmosphere, atoms, audiolres, automation, axioms, bacteria, batteries, bdcc, beverages, biochem, bioengineering, biologics, biology, biomass, biomechanics, biomed, biomedicines, biomedinformatics, biomimetics, biomolecules, biophysica, bioresourbioprod, biosensors, biosphere, biotech, birds, blockchains, bloods, blsf, brainsci, breath, buildings, cancers, carbon, cardiogenetics, cardiovascmed, catalysts, cells, ceramics, challenges, chemengineering, chemistry, chemosensors, chemproc, children, chips, cimb, civileng, cleantechnol, climate, clinbioenerg, clinpract, clockssleep, cmd, cmtr, coasts, coatings, colloids, colorants, commodities, complexities, complications, compounds, computation, computers, condensedmatter, conservation, constrmater, cosmetics, covid, crops, cryo, cryptography, crystals, csmf, ctn, culture, curroncol, cyber, dairy, data, ddc, dentistry, dermato, dermatopathology, designs, devices, dhi, diabetology, diagnostics, dietetics, digital, disabilities, diseases, diversity, dna, drones, dynamics, earth, ebj, ecm, ecologies, edm, eesp, electricity, electrochem, electronicmat, electronics, encyclopedia, endocrines, energies, eng, engproc, entomology, entropy, environments, environremediat, epidemiologia, epigenomes, esa, est, fermentation, fibers, fintech, fire, fishes, fluids, foods, forecasting, forensicsci, forests, fossstud, foundations, fractalfract, fuels, future, futureinternet, futurepharmacol, futurephys, futuretransp, galaxies, gases, gastroent, gastrointestdisord, gastronomy, gels, genes, geographies, geohazards, geomatics, geometry, geosciences, geotechnics, geriatrics, germs, glacies, grasses, green, greenhealth, gucdd, hardware, hazardousmatters, healthcare, hearts, hemato, hematolrep, hep, heritage, higheredu, highthroughput, horticulturae, hospitals, hydrobiology, hydrogen, hydrology, hydropower, hygiene, idr, iic, ijem, ijerph, ijgi, ijmd, ijms, ijns, ijom, ijpb, ijt, ijtm, ijtpp, ime, immuno, informatics, information, infrastructures, inorganics, insects, instruments, inventions, iot, j, jaestheticmed, jal, jcdd, jcm, jcp, jcrm, jcs, jcto, jdad, jdb, jdream, jemr, jeta, jfb, jfmk, jgbg, jgg, jimaging, jlpea, jmahp, jmmp, jmms, jmp, jmse, jne, jnt, jof, joi, joitmc, joma, jop, joptm, jor, jox, jpbi, jphytomed, jpm, jsan, jtaer, jvd, jzbg, kidneydial, kinasesphosphatases, knowledge, labmed, laboratories, lae, land, life, lights, limnolrev, lipidology, liquids, livers, logics, logistics, lubricants, lymphatics, machines, macromol, magnetism, magnetochemistry, make, marinedrugs, materials, materproc, mathematics, mca, measurements, medicina, medicines, medsci, membranes, merits, metabolites, metals, meteorology, methane, metrics, metrology, micro, microarrays, microbiolres, microelectronics, micromachines, microorganisms, microplastics, microwave, minerals, mining, mmphys, modelling, molbank, molecules, mps, msf, mti, multimedia, muscles, nanoenergyadv, nanomanufacturing, nanomaterials, ncrna, ndt, network, neuroglia, neuroimaging, neurolint, neurosci, nitrogen, notspecified, nursrep, nutraceuticals, nutrients, obesities, occuphealth, oceans, ohbm, onco, optics, oral, organics, organoids, osteology, oxygen, pandemics, parasites, parasitologia, particles, pathogens, pathophysiology, pediatrrep, pets, pharmaceuticals, pharmaceutics, pharmacoepidemiology, pharmacy, philosophies, photochem, photonics, phycology, physchem, physics, physiologia, plants, plasma, platforms, pollutants, polymers, polysaccharides, populations, poultry, powders, precipitation, precisoncol, preprints, proceedings, processes, prosthesis, proteomes, psf, psychiatryint, psychoactives, purification, quantumrep, quaternary, qubs, radiation, rdt, reactions, realestate, receptors, recycling, regeneration, remotesensing, reports, reprodmed, resources, rheumato, rjpm, robotics, rsee, ruminants, safety, sci, scipharm, sclerosis, seeds, sensors, separations, sexes, shi, signals, sinusitis, siuj, skins, smartcities, sna, societies, software, soilsystems, solar, solids, spectroscj, sports, standards, stats, std, stratsediment, stresses, surfaces, surgeries, suschem, sustainability, symmetry, synbio, systems, tae, targets, taxonomy, technologies, telecom, test, textiles, thalassrep, therapeutics, thermo, timespace, tomography, toxics, toxins, tph, transplantology, transportation, traumacare, traumas, tri, tropicalmed, universe, urbansci, uro, vaccines, vehicles, venereology, vetsci, vibration, virtualworlds, viruses, vision, waste, water, welding, wem, wevj, wild, wind, women, world, zoonoticdis
+
+%---------
+% article
+%---------
+% The default type of manuscript is "article", but can be replaced by: 
+% abstract, addendum, article, benchmark, book, bookreview, briefcommunication, briefreport, casereport, changes, clinicopathologicalchallenge, comment, commentary, communication, conceptpaper, conferenceproceedings, correction, conferencereport, creative, datadescriptor, discussion, entry, expressionofconcern, extendedabstract, editorial, essay, erratum, fieldguide, hypothesis, interestingimages, letter, meetingreport, monograph, newbookreceived, obituary, opinion, proceedingpaper, projectreport, reply, retraction, review, perspective, protocol, shortnote, studyprotocol, supfile, systematicreview, technicalnote, viewpoint, guidelines, registeredreport, tutorial,  giantsinurology, urologyaroundtheworld
+% supfile = supplementary materials
+
+%----------
+% submit
+%----------
+% The class option "submit" will be changed to "accept" by the Editorial Office when the paper is accepted. This will only make changes to the frontpage (e.g., the logo of the journal will get visible), the headings, and the copyright information. Also, line numbering will be removed. Journal info and pagination for accepted papers will also be assigned by the Editorial Office.
+
+%------------------
+% moreauthors
+%------------------
+% If there is only one author the class option oneauthor should be used. Otherwise use the class option moreauthors.
+
+%---------
+% pdftex
+%---------
+% The option pdftex is for use with pdfLaTeX. Remove "pdftex" for (1) compiling with LaTeX & dvi2pdf (if eps figures are used) or for (2) compiling with XeLaTeX.
+
+%=================================================================
+% MDPI internal commands - do not modify
+\firstpage{1} 
+\makeatletter 
+\setcounter{page}{\@firstpage} 
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+\externaleditor{Firstname Lastname} % More than 1 editor, please add `` and '' before the last editor name
+\datereceived{6 May 2026} 
+\daterevised{1 June 2026} % Comment out if no revised date
+\dateaccepted{2 June 2026} 
+\datepublished{ } 
+%\datecorrected{} % For corrected papers: "Corrected: XXX" date in the original paper.
+%\dateretracted{} % For retracted papers: "Retracted: XXX" date in the original paper.
+\hreflink{https://doi.org/} % If needed use \linebreak
+%\doinum{}
+%\pdfoutput=1 % Uncommented for upload to arXiv.org
+%\CorrStatement{yes}  % For updates
+%\longauthorlist{yes} % For many authors that exceed the left citation part
+%\IsAssociation{yes} % For association journals
+
+%=================================================================
+% Add packages and commands here. The following packages are loaded in our class file: fontenc, inputenc, calc, indentfirst, fancyhdr, graphicx, epstopdf, lastpage, ifthen, float, amsmath, amssymb, lineno, setspace, enumitem, mathpazo, booktabs, titlesec, etoolbox, tabto, xcolor, colortbl, soul, multirow, microtype, tikz, totcount, changepage, attrib, upgreek, array, tabularx, pbox, ragged2e, tocloft, marginnote, marginfix, enotez, amsthm, natbib, hyperref, cleveref, scrextend, url, geometry, newfloat, caption, draftwatermark, seqsplit
+% cleveref: load \crefname definitions after \begin{document}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{changepage}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+
+
+
+%=================================================================
+% Please use the following mathematics environments: Theorem, Lemma, Corollary, Proposition, Characterization, Property, Problem, Example, ExamplesandDefinitions, Hypothesis, Remark, Definition, Notation, Assumption
+%% For proofs, please use the proof environment (the amsthm package is loaded by the MDPI class).
+
+%=================================================================
+% Full title of the paper (Capitalized)
+\Title{TLS-Aware Anomaly Detection for Encrypted IoT Traffic Using \linebreak  a $\beta$-Variational Autoencoder with ANOVA--Mutual Information Feature Selection}
+
+\Author{\hl{Muhammad Nouman} \hl{*}, Raja Ujjan and Muhsin Hassanu \hl{*}} %MDPI: (1) Please carefully check the accuracy of names and affiliations. (2) We added the asterisk to indicate correspondence following submission online at susy.mdpi.com. Please confirm. %AUTHOR: Confirmed. Names and affiliations are correct. Both Muhammad Nouman and Muhsin Hassanu are corresponding authors.
+
+\AuthorNames{Muhammad Nouman, Raja Ujjan, and Muhsin Hassanu}
+
+\address[1]{\hl{Department of Computing and Cybersecurity, University of the West of Scotland}, London Campus, \hl{London} E14 2BA, UK; raja.ujjan@uws.ac.uk} %MDPI: (1) Affiliations are duplicated, so we combine and removed affiliation number. Please confirm. (2) The department/school/faculty/campus of this university is required. Please try to provide this information. %MDPI: Please add the postal code. If a postal code is not available, a Post Office Box number can be added instead. %AUTHOR: (1) Confirmed. Affiliations combined correctly. (2) Department of Computing and Cybersecurity added. Postal code E14 2BA added.
+
+\corres{\hangafter=1 \hangindent=1.05em \hspace{-0.82em}Correspondence: \hl{b01654699@studentmail.uws.ac.uk} %MDPI: Capitalized email address is not recommended; we changed it to lowercase. Please confirm. %AUTHOR: Confirmed. Lowercase email is correct.
+ (M.N.); muhsin.hassanu@uws.ac.uk (M.H.)}
+
+\abstract{The rapid growth of the Internet of Things (IoT) has increased dependency on Transport Layer Security (TLS) for securing device communications, enhancing confidentiality while reducing the visibility required by traditional intrusion detection systems. As payload inspection becomes impractical in encrypted environments, anomaly detection must instead rely on flow-level statistics and TLS metadata. This is challenging because IoT traffic is heterogeneous, non-stationary, and distributionally inconsistent across datasets, while many existing studies rely on single-dataset evaluation and therefore provide limited evidence of real-world generalisation. We introduce a TLS-aware anomaly detection framework that combines a $\beta$-Variational Autoencoder ($\beta$-VAE) with a hybrid ANOVA--Mutual Information (ANOVA--MI) feature-selection pipeline. The incremental contribution lies not in the individual use of these components, but in their integrated application to encrypted IoT anomaly detection under strict cross-dataset evaluation, where feature filtering, probabilistic latent regularisation, and threshold transferability are jointly examined without retraining or recalibration on target datasets. The framework models benign encrypted IoT traffic using probabilistic latent representations and identifies anomalies through reconstruction-error-based scoring. Network flows from the BoT-IoT, IoT-23, and ToN-IoT datasets were processed using Zeek and CICFlowMeter to construct a unified metadata feature space incorporating flow statistics and TLS attributes such as JA3 and JA3S fingerprints. The model was trained on benign BoT-IoT traffic and evaluated in both in-dataset and cross-dataset scenarios. The model achieves strong in-dataset performance on BoT-IoT (\mbox{ROC-AUC $\approx 0.9996$}; F1 $\approx 0.9922$) and retains robust anomaly-ranking and threshold-based detection capability under cross-dataset domain shift (\mbox{IoT-23: ROC-AUC $\approx 0.9882$}, F1 $\approx 0.9422$; ToN-IoT: ROC-AUC $\approx 0.9465$, F1 $\approx 0.8732$). A comparative evaluation against deterministic autoencoders and classical baselines further indicates that the proposed $\beta$-VAE achieves stronger cross-dataset anomaly-ranking performance than the compared methods. These findings support the suitability of probabilistic latent modelling for privacy-preserving anomaly detection in encrypted IoT environments.
+}
+
+\keyword{encrypted IoT; anomaly detection; $\beta$-variational autoencoder; TLS metadata; feature selection; cross-dataset generalisation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+%\makeatletter
+%\fancypagestyle{plain}{%
+%  \fancyhf{}%
+%  \fancyfoot[C]{\thepage}%
+%  \renewcommand{\headrulewidth}{0pt}%
+%}
+%\pagestyle{plain}
+%\makeatother
+%\newpage
+\section{Introduction}
+
+The rapid growth of the Internet of Things (IoT) has driven the proliferation of IoT networks comprising massive numbers of heterogeneous and resource-constrained devices deployed within domestic, industrial, and~critical-infrastructure settings. These devices continuously generate network traffic characterised by diverse communication patterns, intermittent connectivity, and~varying security configurations. To~protect confidentiality, Transport Layer Security (TLS) has become a dominant mechanism for securing IoT communications~\cite{anderson2016}. While encryption strengthens privacy, it also reduces the visibility traditionally required by intrusion detection systems (IDS), which have historically relied on payload inspection and signature-based detection~\cite{ahmad2021}. As~encrypted communication becomes increasingly prevalent, IDS must shift towards metadata-driven approaches based on flow statistics and TLS handshake characteristics~\cite{rezaei2022, ji2024}.
+
+Machine-learning-based IDS have advanced substantially in recent years; however, anomaly detection for encrypted IoT traffic remains difficult. IoT traffic is inherently non-stationary due to device heterogeneity, firmware variation, evolving communication behaviour, and~differences in deployment contexts~\cite{chandola2009}. As~a result, supervised learning methods and deterministic autoencoders often achieve strong performance within a single dataset but generalise poorly across distinct IoT environments. This degradation is primarily driven by domain shift, where statistical properties of network traffic differ across environments, leading to unstable decision boundaries in models trained on a single dataset~\cite{owoh2024, lopez2017, alaghbari2023}. These limitations motivate the use of robust unsupervised approaches capable of modelling the underlying distribution of benign encrypted traffic while remaining resilient to cross-dataset~variability.
+
+Variational Autoencoders (VAEs) provide a principled framework for learning probabilistic latent representations of complex data distributions. However, standard VAEs may produce latent spaces that are insufficiently regularised for effective anomaly separation, particularly when detection depends on indirect metadata rather than visible payload content. The~$\beta$-Variational Autoencoder ($\beta$-VAE) addresses this limitation by increasing the contribution of the Kullback--Leibler divergence term in the optimisation objective. This stronger regularisation encourages a more structured and disentangled latent space, where dominant factors of variation in benign encrypted traffic are represented more independently rather than being compressed into highly entangled dataset-specific patterns. In~TLS-aware IoT anomaly detection, this is especially valuable because the model must infer normal and abnormal behaviour from observable metadata such as TLS versions, cypher suites, JA3/JA3S fingerprints, packet-length distributions, and~inter-arrival timing patterns, rather than from decrypted packet payloads. By~promoting disentangled probabilistic representations of these metadata characteristics, the~$\beta$-VAE is expected to improve anomaly separability and support stronger generalisation across heterogeneous IoT traffic~distributions.
+
+In addition to model design, feature selection plays a central role in improving detection performance and generalisation. High-dimensional metadata spaces often contain redundant or weakly informative variables that reduce model stability and increase the risk of overfitting. Analysis of Variance (ANOVA) and Mutual Information (MI) provide complementary filter-based criteria for feature selection: ANOVA prioritises variables with strong between-class separation, while MI captures statistical dependence with class labels, including non-linear relationships. Prior intrusion-detection studies have shown that MI-based and aggregated statistical feature-selection strategies can reduce redundant traffic variables and improve detection efficiency~\cite{amiri2011,alsarem2022}. However, the~integration of such feature-selection methods with probabilistic deep-learning models for encrypted IoT anomaly detection remains limited in the current~literature.
+
+A further limitation of prior work is the widespread reliance on single-dataset evaluation. Although~such evaluations may produce strong headline metrics, they often provide an overly optimistic view of operational performance. In~practice, IoT environments vary considerably in device composition, communication protocols, and~traffic distributions, further amplifying the effects of domain shift. Consequently, cross-dataset generalisation is a critical requirement for any anomaly-detection framework intended for real deployment. The~limited use of multi-dataset evaluation therefore represents an important methodological gap in existing research~\cite{cantone2024}.
+
+Although $\beta$-VAE modelling, statistical feature selection, and~cross-dataset evaluation have each been investigated in prior studies, their combined use for TLS-aware encrypted IoT anomaly detection remains insufficiently explored. The~novelty of this work is therefore incremental but methodologically specific: it examines whether hybrid ANOVA--MI feature selection can stabilise a probabilistic $\beta$-VAE representation of benign encrypted traffic, and~whether that representation preserves anomaly-ranking capability when transferred across heterogeneous IoT datasets without retraining or threshold recalibration.~This framing distinguishes the present study from prior work that focuses primarily on single-dataset accuracy, deterministic reconstruction models, or~encrypted traffic feature extraction in~isolation.
+
+Despite these advances, limited work has empirically examined whether probabilistic latent representations can retain discriminative structure under cross-dataset conditions when combined with statistically grounded feature selection, without~retraining or recalibration on the target~domain.
+
+To address these challenges, this research proposes a TLS-aware anomaly-detection framework that integrates a $\beta$-Variational Autoencoder with a hybrid ANOVA--Mutual Information feature-selection pipeline. The~framework models benign encrypted IoT traffic using probabilistic latent representations and detects anomalies through reconstruction-error-based scoring. A~unified metadata feature space is constructed using Zeek and CICFlowMeter, combining flow-level statistics with TLS-specific attributes such as JA3 and JA3S fingerprints~\cite{althouse2019}. The~model is trained on benign traffic from the BoT-IoT dataset and evaluated in both in-dataset and cross-dataset settings using the IoT-23 and ToN-IoT datasets~\cite{garcia2020,moustafa2021a}.
+
+The remainder of this paper is organised as follows. Section~\ref{sec2} presents the research contributions. Section~\ref{sec3} reviews the relevant literature on IoT anomaly detection, autoencoder-based intrusion detection, encrypted traffic analysis, and~cross-dataset generalisation. Section~\ref{sec4} describes the materials and methods, including dataset selection, preprocessing, feature extraction, feature selection, and~the proposed $\beta$-VAE framework. Section~\ref{sec5} presents the experimental results for both in-dataset and cross-dataset evaluation, together with baseline comparisons and threshold sensitivity analysis. Section~\ref{sec6} discusses the findings, practical implications, and~limitations of the research. Section~\ref{sec7} concludes the paper and suggests future~work.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Research~Contributions} \label{sec2}
+
+This research makes the following contributions to the field of encrypted IoT anomaly~detection.
+
+First, a~TLS-aware anomaly detection framework is proposed that operates exclusively on flow-level statistics and encrypted traffic metadata, eliminating reliance on payload inspection while preserving data confidentiality. This design directly aligns with modern privacy-preserving network security requirements, where deep packet inspection is increasingly~infeasible.
+
+Second, the~framework integrates a $\beta$-Variational Autoencoder with a hybrid ANOVA--Mutual Information feature-selection pipeline specifically for TLS-aware encrypted IoT anomaly detection. The~contribution is not the isolated use of these established techniques, but~their coordinated design to jointly reduce metadata redundancy, regularise benign latent structure, and~assess transferability under strict cross-dataset conditions. This combination addresses a gap in prior studies that typically analyse feature selection, probabilistic representation learning, or~encrypted-traffic detection separately. Specifically, we employ a $\beta$-VAE that promotes latent-space disentanglement; we hypothesise that this enables the model to learn representations that are less sensitive to dataset-specific peculiarities and more transferable across IoT~settings.
+
+Third, the~proposed approach is evaluated under both in-dataset and strict cross-dataset conditions using three heterogeneous benchmark datasets (BoT-IoT, IoT-23, and~ToN-IoT). This directly addresses the widely acknowledged limitation of single-dataset evaluation by explicitly quantifying robustness under domain shift, providing a more realistic assessment of model generalisation in practical deployment~scenarios.
+
+Fourth, a~detailed comparative analysis against deterministic autoencoders and classical machine learning baselines demonstrates that the proposed $\beta$-VAE achieves a superior balance between anomaly-ranking capability and cross-dataset robustness. The~results show that while baseline models achieve strong performance under in-dataset conditions, they degrade significantly under distributional shift, whereas the proposed method maintains stable ranking~performance.
+
+Finally, the~study identifies threshold calibration as a critical challenge in reconstruction-based anomaly detection. It shows that while anomaly-ranking performance remains stable under domain shift, fixed-threshold classification leads to reduced recall in heterogeneous environments. This finding highlights a fundamental limitation of reconstruction-based methods and underscores the importance of adaptive decision mechanisms for real-world~deployment.
+
+Collectively, these contributions advance the development of privacy-preserving and generalisable anomaly detection frameworks for encrypted IoT networks under realistic operational~conditions.
+
+\section{Related~Work} \label{sec3}
+\subsection{Anomaly Detection in IoT~Networks}
+
+The rapid expansion of IoT networks has generated significant interest in anomaly and intrusion detection for resource-constrained settings. Early approaches relied on signature-based methods and rule-based filtering, which offer low false-positive rates but are inherently unable to generalise to novel or zero-day attacks~\cite{chandola2009}. This limitation motivated a shift towards machine-learning-based approaches capable of learning statistical patterns from network traffic. \citet{chatterjee2022} provided a comprehensive survey of IoT anomaly detection methods, identifying metadata-driven detection as a critical direction for encrypted environments. Systematic investigations of anomaly detection techniques across machine learning and deep learning paradigms further highlight the rapid evolution of detection methodologies and the increasing importance of generalisable \mbox{models~\cite{kumari2024}}. Similarly, \citet{araya2023} argued that existing anomaly-detection solutions often suffer from high false-positive rates and limited ability to generalise across different IoT~settings.
+
+Supervised methods such as Random Forest, Support Vector Machines, and~gradient-boosted classifiers have demonstrated strong performance on benchmark IoT datasets. For~example, \citet{altulaihan2024} reported high detection accuracy for denial-of-service attacks using the BoT-IoT dataset. However, such approaches require labelled training data and often exhibit performance degradation when applied to environments with different traffic distributions. \citet{ahmad2021} showed that deep neural networks can extract high-level behavioural representations from network flows, but~also emphasised that generalisation remains limited without diverse and representative training data. These findings highlight a fundamental limitation of supervised approaches in dynamic IoT~environments.
+
+\subsection{Autoencoder-Based and Reconstruction-Error~Methods}
+
+Autoencoders have attracted considerable attention as unsupervised anomaly detectors, as~they can be trained exclusively on benign traffic and detect anomalies through elevated reconstruction error. \citet{alaghbari2023} demonstrated that deep autoencoder frameworks can effectively separate benign and malicious traffic when trained on representative data. Similarly, \citet{hou2022} combined autoencoders with Bayesian Gaussian mixture models to improve anomaly scoring~stability.
+
+Adding denoising autoencoders further improves their robustness by learning to reconstruct clean inputs from noisy inputs. \citet{ayad2025} and \citet{berraadi2025} demonstrated that such approaches can achieve strong detection performance in real-time IoT environments. However, deterministic autoencoders remain limited by their reliance on point-estimate reconstructions, which can lead to poorly calibrated anomaly scores when applied to unseen traffic distributions. This limitation becomes particularly evident under cross-dataset evaluation, where distributional shifts reduce reconstruction reliability~\cite{cantone2024}.
+
+\subsection{Variational Autoencoders for Anomaly~Detection}
+
+VAEs are stochastic variants of deterministic autoencoders which learn latent 
+representations parameterised by mean and variance. This probabilistic formulation 
+provides a more principled anomaly score under uncertainty 
+compared with traditional reconstruction error~\cite{lopez2017}.
+
+\citet{lopez2017} applied a conditional VAE to IoT intrusion detection, showing that probabilistic modelling can capture structured variation in network behaviour. The~$\beta$-VAE further improves this framework by enforcing stronger latent-space regularisation, enabling improved separation between normal and anomalous samples. Despite these advantages, the~application of $\beta$-VAE to encrypted IoT traffic remains limited, particularly in the context of cross-dataset generalisation.
+Recent hybrid generative approaches combining variational autoencoders with adversarial learning have also been explored for intrusion detection, demonstrating improved representation capability under complex and highly variable traffic distributions~\cite{wang2024}.
+
+Recent work by \citet{owoh2024} introduced temporal convolutional autoencoders to capture sequential patterns in IoT data. While effective for time-dependent anomalies, such approaches have not been systematically evaluated in encrypted traffic scenarios or under heterogeneous dataset~conditions.
+
+\subsection{Encrypted Traffic Analysis and TLS-Aware~Detection}
+
+The widespread adoption of TLS has fundamentally transformed network traffic analysis. Traditional deep packet inspection is no longer feasible, necessitating reliance on flow-level statistics and TLS handshake metadata~\cite{anderson2016, rezaei2022}. TLS fingerprinting techniques such as JA3 and JA3S provide cryptographic fingerprints that can be used for malware detection without decrypting payloads~\cite{althouse2019}.
+
+\citet{fotiadou2021} demonstrated that deep learning models using flow-level features can achieve competitive performance in encrypted traffic analysis. Tools such as CICFlowMeter and Zeek~\cite{zeek2023} enable extraction of rich statistical and TLS-based features, forming the basis of modern encrypted traffic analysis pipelines.
+Recent studies have further explored deep learning and feature-mining techniques for encrypted traffic analysis, highlighting the importance of robust feature extraction under encryption constraints~\cite{wang2023,long2023}.
+
+However, most existing studies evaluate models within a single dataset and do not assess robustness under domain shift. Given the diversity of IoT environments, this represents a critical limitation for real-world deployment~\cite{cantone2024}.
+
+\subsection{Feature Selection for Intrusion~Detection}
+
+High-dimensional feature spaces present a significant challenge in network traffic analysis. Raw flow data often contain redundant and noisy features that degrade model performance. Filter-based statistical methods such as ANOVA and Mutual Information have been used in intrusion-detection studies to reduce redundant variables and retain features with stronger discriminatory value~\cite{amiri2011,alsarem2022}.
+
+\citet{koroniotis2019} demonstrated that a reduced subset of flow features is sufficient for botnet detection, while \citet{garcia2020} highlighted the importance of TLS metadata in IoT malware classification. However, prior work typically applies feature selection independently of deep learning models. The~combined use of ANOVA and Mutual Information within a probabilistic anomaly detection framework remains~underexplored.
+
+\subsection{Cross-Dataset Evaluation and~Generalisation}
+
+A major limitation in the IoT intrusion detection literature is the reliance on single-dataset evaluation. While models often achieve high accuracy within a dataset, performance degrades significantly under domain shift. \citet{koroniotis2019} and \citet{garcia2020} showed that dataset-specific characteristics strongly influence model~performance.
+
+Cross-dataset evaluation provides a more realistic measure of generalisation, but~remains limited in existing studies. Few works evaluate models trained on one dataset and tested on another without retraining or recalibration. This gap motivates the approach adopted in this research, which evaluates the proposed $\beta$-VAE framework across BoT-IoT, IoT-23, and~ToN-IoT under strict cross-dataset conditions~\cite{cantone2024}.
+In addition, emerging approaches based on self-supervised learning and generative modelling, including diffusion-based frameworks, have been proposed to improve generalisation in encrypted traffic environments~\cite{sattar2025b,li2025}.
+
+\textls[-10]{Table~\ref{tab:lit_review} summarises representative studies in encrypted IoT anomaly detection, highlighting their methodologies, evaluation settings, and~key limitations identified in the~literature.}
+
+\begin{table}[H]
+  \caption{\hl{Summary} %MDPI: We moved all figure/tables to behind their first citation, please confirm. %AUTHOR: Confirmed.
+ of representative studies in encrypted IoT anomaly~detection.}
+  \label{tab:lit_review}
+%  \renewcommand{\arraystretch}{1.08}
+%  \setlength{\tabcolsep}{3pt}
+  \scriptsize
+ \begin{adjustwidth}{-\extralength}{0cm}
+ \begin{tabularx}{\fulllength}{l l l l m{4.5cm}<{\raggedright}}
+%  >{\RaggedRight\arraybackslash}p{2.7cm}
+%  >{\RaggedRight\arraybackslash}p{2.1cm}
+%  >{\RaggedRight\arraybackslash}p{2.2cm}
+%  >{\RaggedRight\arraybackslash}p{2.2cm}
+%  >{\RaggedRight\arraybackslash}X
+%  }
+  \toprule
+  \textbf{Study} & \textbf{Method} & \textbf{Data Type} & \textbf{Evaluation} & \textbf{Main Limitation} \\
+  \midrule
+  
+  \hl{Ahmad~et~al.~(2021)}~\cite{ahmad2021} %MDPI: The reference citation format should be a number with a square bracket, e.g., [1]; please check if the expression here is a reference citation. If so, please add the corresponding ref citation ([Number]). The following highlights are the same. %AUTHOR: Citation numbers added via \cite{} commands to all rows.
+ & DNN & IoT flow data & Single dataset & Limited evidence of cross-dataset~generalisation \\
+
+  \hl{Alaghbari~et~al.~(2023)}~\cite{alaghbari2023} & Deep AE & IoT traffic & Single dataset & Deterministic reconstruction limits robustness under domain~shift \\
+
+  \hl{Lopez-Martin~et~al.~(2017)}~\cite{lopez2017} & Conditional VAE & IoT traffic & Within dataset & Limited focus on encrypted IoT~traffic \\
+
+  \hl{Owoh~et~al.~(2024)}~\cite{owoh2024} & Temporal AE & Sequential IoT data & Single domain & No evaluation on TLS-based encrypted~traffic \\
+
+  \hl{Fotiadou~et~al.~(2021)}~\cite{fotiadou2021} & Deep learning & Flow metadata & Single dataset & Limited robustness analysis under domain~shift \\
+
+  \hl{Garcia~et~al.~(2020)}~\cite{garcia2020} & Dataset study & IoT-23 & Benchmark dataset & Dataset release; no proposed detection~model \\
+
+  \hl{Koroniotis~et~al.~(2019)}~\cite{koroniotis2019} & Feature study & BoT-IoT & Benchmark dataset & Limited focus on encrypted traffic~analysis \\
+
+  \hl{Ayad~et~al.~(2025)}~\cite{ayad2025} & One-class AE + DNN & IoT traffic & Single dataset & Limited cross-dataset~validation \\
+
+  \hl{Berraadi~et~al.~(2025)}~\cite{berraadi2025} & Real-time anomaly detection & IoT streams & Real-time/single domain & No cross-dataset~evaluation \\
+
+  \hl{Hou~et~al.~(2022)}~\cite{hou2022} & AE + Bayesian GMM & IoT traffic & Single dataset & Limited validation under heterogeneous~datasets \\
+
+  \hl{Altulaihan~et~al.~(2024)}~\cite{altulaihan2024} & ML-based IDS & BoT-IoT / DoS & Single dataset & Supervised and attack-specific~evaluation \\
+
+  \hl{Chatterjee and Ahmed~(2022)}~\cite{chatterjee2022} & Survey & IoT literature & Review study & No experimental detector~proposed \\
+
+  \hl{Araya and Rifà-Pous~(2023)}~\cite{araya2023} & Systematic review & Smart-home IoT & Review study & No implemented detection~framework \\
+
+  \hl{Anderson and McGrew~(2016)}~\cite{anderson2016} & Flow analysis & Encrypted traffic & Encrypted traffic study & Not specific to IoT anomaly~detection \\
+
+  \hl{Althouse~et~al.~(2019)}~\cite{althouse2019} & JA3/JA3S fingerprinting & TLS metadata & Practical study & Fingerprinting method, not a complete anomaly~detector \\
+  
+  \bottomrule
+  \end{tabularx}
+\end{adjustwidth}
+  \end{table}
+\unskip
+
+%% ================================================================
+
+\section{Materials and~Methods} \label{sec4}
+
+\subsection{Research Design~Overview}
+
+\hl{This research} %MDPI: (1) In this section, please double check that the following details are provided for all cases: company names and addresses (city, country) of the instruments, agents and software used (in their first appearance). For USA or Canadian companies, please provide the state name as well (i.e., city name, abbreviated state name, USA/Canada, e.g., Waltham, MA, USA or Toronto, ON, Canada). (2) Please confirm if any software was used in this paper, if so, please state which version of the software was used %AUTHOR: (1) Company names and addresses added at first appearance in the text for all software tools. (2) Software used: Zeek (Version 6.0; The Zeek Project, \url{https://zeek.org}); CICFlowMeter (Version 4.0; Canadian Institute for Cybersecurity, University of New Brunswick, Fredericton, NB, Canada); Python (Version 3.11; Python Software Foundation, Wilmington, DE, USA); scikit-learn (Version 1.4.2; \url{https://scikit-learn.org}); PyTorch (Version 2.9.1; Meta Platforms, Inc., Menlo Park, CA, USA).
+ adopts an experimental, metadata-driven design for anomaly detection in encrypted IoT traffic, where payload inspection is infeasible due to widespread use of TLS encryption~\cite{anderson2016}. The~overall framework is illustrated in Figure~\ref{fig:pipeline}. The~proposed pipeline integrates TLS-aware preprocessing, statistical feature selection, and~probabilistic deep learning to model benign encrypted network behaviour and identify anomalous~deviations.
+
+Raw PCAP traffic is processed using Zeek and CICFlowMeter to extract TLS metadata and flow-level statistics, which are combined into a unified feature~representation.
+
+\begin{figure}[H]
+  \includegraphics[width=\textwidth]{pipeline.png}
+  \caption{\hl{Proposed} %MDPI: Please note that changes to the position/size of figures or tables may occur during the production stage. %AUTHOR: Noted.
+ TLS-aware anomaly detection~pipeline.}
+  \label{fig:pipeline}
+\end{figure}
+
+Figure~\ref{fig:pipeline} presents the overall pipeline of the proposed TLS-aware anomaly detection framework. Raw PCAP traffic from BoT-IoT (training) and IoT-23/ToN-IoT (cross-dataset evaluation) is processed using Zeek and CICFlowMeter to extract TLS metadata and flow statistics. The~resulting features are fused, cleaned, and~normalised before applying a hybrid ANOVA--Mutual Information feature-selection process fitted on training data only. A~$\beta$-Variational Autoencoder is trained on benign BoT-IoT traffic to learn a probabilistic latent representation, and~anomaly detection is performed using reconstruction-error-based scoring with a fixed threshold derived from benign training~errors.
+
+\subsection{Datasets}
+
+Three publicly available IoT intrusion datasets are used: the BoT-IoT, IoT-23, and~ToN-IoT. These datasets were chosen because of their diversity, inclusion of encrypted traffic, and~representativeness of real-world IoT and IIoT~environments.
+
+The BoT-IoT dataset~\cite{koroniotis2019} contains large-scale synthetic IoT traffic with multiple attack categories, including distributed denial-of-service (DDoS), reconnaissance, and~data exfiltration. Due to its structured nature and abundance of benign samples, it is used exclusively for training the anomaly detection~model.
+
+The IoT-23 dataset~\cite{garcia2020} consists of real-world IoT malware captures and benign traffic collected from heterogeneous devices communicating over encrypted protocols. It is used for cross-dataset evaluation to assess~generalisation.
+
+The ToN-IoT dataset~\cite{moustafa2021a} represents a complex IIoT environment with noisy and heterogeneous traffic generated from industrial systems. It serves as a challenging test set for evaluating robustness under severe domain~shift.
+
+\subsection{Data Preprocessing and Feature~Extraction}
+
+Raw packet capture (PCAP) files are processed using a TLS-aware preprocessing pipeline. Zeek (Version 6.0; The Zeek Project, \url{https://zeek.org})~\cite{zeek2023} is used to extract connection-level logs and TLS metadata, including protocol versions, cypher suites, extensions, server name indication (SNI), and~cryptographic fingerprints such as JA3 and JA3S~\cite{althouse2019}. In~parallel, CICFlowMeter (Version 4.0; Canadian Institute for Cybersecurity, University of New Brunswick, Fredericton, NB, Canada) computes flow-level statistical features such as packet counts, byte volumes, flow durations, inter-arrival times, and~activity/idle~metrics.
+
+The outputs from Zeek and CICFlowMeter are merged using flow-level identifiers to construct a unified feature representation. Incomplete or corrupted flows and records without TLS handshake information are removed. Continuous features are normalised using min--max scaling to ensure numerical stability. This preprocessing results in a consistent metadata feature space across datasets while preserving dataset-specific \mbox{behavioural~characteristics.}
+
+\subsection{Feature Selection~Methodology}
+
+To reduce dimensionality and mitigate noisy or redundant metadata variables, this study applies a hybrid ANOVA--Mutual Information (ANOVA--MI) feature-selection procedure. The~initial unified feature space contains 30 numerical flow-level and TLS-aware metadata attributes. Feature selection is fitted only on the BoT-IoT training partition, and~the resulting feature indices are subsequently applied unchanged to BoT-IoT testing, IoT-23, and~ToN-IoT. This design prevents target-domain information from influencing feature ranking and preserves the strict cross-dataset evaluation~protocol.
+
+The first criterion is the ANOVA F-test, which measures the degree to which each feature separates benign and malicious classes by comparing between-class variation with within-class \hl{variation:} %MDPI: Please ensure all variables/values in the equation appear in the same format in the text (normal/italic/bold/subscript/superscript). %AUTHOR: Confirmed. All variables ($F_j$, $K$, $n_k$, $\mu_{jk}$, $x_{ijk}$, $\mu_j$) are presented consistently in italic math mode in both the equations and the surrounding text.
+\begin{equation}
+F_j =
+\frac{
+\sum_{k=1}^{K} n_k (\mu_{jk} - \mu_j)^2
+}{
+\sum_{k=1}^{K} \sum_{i=1}^{n_k} (x_{ijk} - \mu_{jk})^2
+}
+\end{equation}
+where $F_j$ is the ANOVA score of feature $j$, $K$ is the number of classes, $n_k$ is the number of samples in class $k$, $\mu_{jk}$ is the mean of feature $j$ within class $k$, and~$\mu_j$ is the global mean of feature $j$. Features with higher ANOVA scores exhibit stronger class-separation~capability.
+
+The second criterion is Mutual Information (MI), which estimates the dependency between a feature and the class label and can capture non-linear associations that are not reflected by variance-based measures alone:
+\begin{equation}
+I(X_j;Y) =
+\sum_{x \in X_j}
+\sum_{y \in Y}
+p(x,y)
+\log
+\left(
+\frac{p(x,y)}{p(x)p(y)}
+\right)
+\end{equation}
+where $X_j$ is the $j$th feature and $Y$ is the corresponding class label. A~higher MI score indicates that the feature contains more information relevant to benign/attack~separation.
+
+To combine the two criteria, ANOVA and MI scores are independently normalised using min--max scaling:
+\begin{equation}
+\hat{F}_j =
+\frac{F_j - \min(F)}
+{\max(F) - \min(F) + \varepsilon}
+\end{equation}
+\begin{equation}
+\widehat{MI}_j =
+\frac{MI_j - \min(MI)}
+{\max(MI) - \min(MI) + \varepsilon}
+\end{equation}
+where $\varepsilon$ is a small constant introduced for numerical stability. The~final hybrid score for each feature is computed as
+\begin{equation}
+S_j = \hat{F}_j + \widehat{MI}_j
+\end{equation}
+
+Features are ranked in descending order according to $S_j$, and~the top 20 features are retained for model training and evaluation. This hybrid design favours features that are simultaneously discriminative under variance-based separation and informative under non-linear statistical dependency. In~the intrusion-detection context, this helps remove weak or redundant traffic metadata while preserving variables that support benign/attack discrimination and cross-dataset robustness~\cite{amiri2011,alsarem2022}.
+
+Although the $\beta$-VAE itself is trained exclusively on benign traffic, labelled data are used during this offline feature-selection stage to identify informative metadata dimensions. Accordingly, the~proposed framework is unsupervised at the anomaly-modelling stage but semi-supervised in its overall end-to-end~design. Feature selection was implemented using the scikit-learn library (Version 1.4.2; \url{https://scikit-learn.org}) in Python (Version 3.11; Python Software Foundation, Wilmington, DE, USA).
+
+\subsection{$\beta$-Variational Autoencoder Architecture and~Training}
+
+The developed anomaly-detection model is a fully connected $\beta$-Variational Autoencoder implemented in \hl{PyTorch (version~2.9.1; Meta Platforms, Inc., Menlo Park, CA, USA).} %MDPI: Please state which version of the software was used. %AUTHOR: PyTorch version and company details added.
+ The~architecture and operational workflow of the model are illustrated in Figure~\ref{fig:beta_vae}. The~encoder maps the input feature vector into a latent space parameterised by mean $\mu$ and variance $\sigma^2$, enabling stochastic sampling through the reparameterisation~trick.
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{beta_vae.png}
+\caption{$\beta$-\hl{Variational} %MDPI: The contents of this figure are not legible. Please replace the image with one of a sufficiently high resolution (min. 1000 pixels width/height, or a resolution of 300 dpi or higher).
+ Autoencoder architecture and anomaly detection~workflow.}
+\label{fig:beta_vae}
+\end{figure}
+
+Figure~\ref{fig:beta_vae} illustrates the network architecture and training/inference pipeline of the proposed $\beta$-Variational Autoencoder. The~encoder network takes benign input features and learns their latent distribution parameters, which are then used during reparameterisation to sample latent vectors. The~decoder reconstructs the input, and~the model is optimised using a combined reconstruction and Kullback--Leibler divergence loss weighted by $\beta$. During~inference, reconstruction error is used as an anomaly score, with~a fixed threshold derived from benign training~errors.
+
+The separation between training and inference phases in Figure~\ref{fig:beta_vae} highlights that the model is trained exclusively on benign data, while anomaly detection is performed without retraining on target datasets.
+\begin{equation}
+z = \mu + \sigma \cdot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
+\end{equation}
+
+The decoder network reconstructs the input from the sampled latent representation. The~model is trained using a loss function that combines reconstruction error and Kullback--Leibler divergence:
+\begin{equation}
+\mathcal{L} = \mathbb{E}_{q(z|x)}[\|x - \hat{x}\|^2] + \beta \cdot D_{KL}(q(z|x) \| p(z))
+\end{equation}
+where $\beta$ controls the strength of latent regularisation by scaling the Kullback--Leibler divergence term. When $\beta > 1$, the~model is encouraged to align latent variables more closely with the prior distribution, which can reduce entangled or dataset-specific feature dependencies. In~this study, that behaviour is expected to promote more disentangled representations of benign encrypted traffic metadata, allowing the model to capture relatively stable structural patterns while reducing sensitivity to nuisance variation across heterogeneous IoT datasets. This provides a plausible mechanism for the improved cross-dataset anomaly-ranking performance observed in the~experiments.
+
+We employ the Adam optimiser for model training, setting the learning rate at $10^{-3}$. The~final proposed model uses $\beta = 2$, selected after a sensitivity analysis over $\beta \in \{1,2,4,6\}$. Although~$\beta = 1$ produced slightly higher mean ROC-AUC and mean F1-score across datasets, $\beta = 2$ was retained because it substantially reduced the false-positive rate under cross-dataset evaluation while maintaining nearly identical overall detection performance. Training is performed exclusively on benign BoT-IoT traffic to model normal~behaviour.
+
+\subsection{Anomaly Scoring and Threshold~Definition}
+
+Anomaly detection is performed using reconstruction-error-based scoring. For~each input flow, the~reconstruction error between the original feature vector and its reconstruction is calculated. A~fixed anomaly threshold is then derived from the distribution of reconstruction errors observed on benign training samples:
+\begin{equation}
+\tau = \mu + 3\sigma
+\end{equation}
+
+Here, $\mu$ and $\sigma$ are the mean and the standard deviation of reconstruction errors respectively across the benign training samples. Let $\tau_{\text{source}}$ denote the fixed threshold estimated from benign BoT-IoT training reconstruction errors. The~same $\tau_{\text{source}}$ is applied unchanged to BoT-IoT testing, IoT-23, and~ToN-IoT evaluation scores; no target-domain reconstruction-error distribution is used for threshold selection or recalibration.~This thresholding strategy is commonly used in anomaly detection to define a high-confidence boundary for normal behaviour under approximate Gaussian assumptions~\cite{chandola2009}. However, if~reconstruction-error distributions are skewed, heavy-tailed, or~multimodal, the~\mbox{$\mu + 3\sigma$} rule may become poorly calibrated. In~such cases, the~threshold may either miss anomalous samples by being overly conservative or increase false positives by inadequately representing benign variability. Flows with reconstruction error exceeding $\tau$ are classified as~anomalous.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results} \label{sec5}
+\unskip
+
+\subsection{In-Dataset Performance on~BoT-IoT}
+
+The proposed $\beta$-VAE demonstrates strong anomaly detection performance on the BoT-IoT dataset, which is also used for benign-only training. The~in-dataset evaluation assesses how effectively the model captures the statistical structure of normal encrypted IoT traffic before being exposed to unseen~environments.
+
+
+The reconstruction-error distribution (Figure~\ref{fig:hist_bot}) shows a clear separation between benign and attack samples. Benign traffic is concentrated at lower reconstruction-error values, whereas attack samples are shifted towards higher values. The~limited overlap indicates that the model effectively captures the dominant characteristics of benign encrypted traffic and assigns higher anomaly scores to abnormal flows. The~fixed threshold is well-aligned with this distribution, with~most benign flows falling below the threshold and the majority of attack samples lying above it, confirming that the $\beta$-VAE reconstructs normal traffic more accurately than anomalous~traffic.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0 0 0.2cm, width=0.8\textwidth]{fig11_hist_bot_iot.png}
+\caption{\hl{Reconstruction-error} %MDPI: Please confirm whether the overlapping content in this figure affects scientific understanding and if it does, please revise it. %AUTHOR: Confirmed. The overlap is intentional and scientifically meaningful -- it reflects the actual reconstruction-error distributions of benign and attack samples and illustrates class separation under in-dataset conditions. No revision required.
+ distribution for benign and attack samples from BoT-IoT. The~dashed line represents the fixed source-domain threshold $\tau_{\text{source}}$ learned from benign BoT-IoT training reconstruction~errors.}
+\label{fig:hist_bot}
+\end{figure}
+
+The confusion matrix in Figure~\ref{fig:conf_bot} shows very strong in-dataset threshold-based classification performance, with~a very small number of false positives and false negatives. Benign traffic is rarely misclassified as malicious, while most anomalous flows are successfully detected. This balance is important in practice, as~it minimises unnecessary alerts without overlooking genuine threats, demonstrating that the learned latent representation provides strong separation under in-dataset~conditions.
+\begin{figure}[H]
+\includegraphics[width=0.62\textwidth]{fig3_confusion_bot_iot.png}
+\caption{Confusion matrix for the $\beta$-VAE on BoT-IoT using the fixed threshold $\tau=\mu+3\sigma$.}
+\label{fig:conf_bot}
+\end{figure}
+
+
+The ROC curve in Figure~\ref{fig:roc_bot} achieves an AUC of approximately 0.9996, demonstrating excellent anomaly-ranking performance on the BoT-IoT test set. The~curve rises rapidly towards the upper-left region, reflecting a high true-positive rate with a very low false-positive rate. Together with the reconstruction-error distribution, this result shows that the learned benign representation strongly separates normal and anomalous flows under in-dataset~conditions.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0.4cm 0 0.4cm, width=0.78\textwidth]{fig14_roc_bot_iot.png}
+\caption{ROC curve for the $\beta$-VAE applied to~BoT-IoT.}
+\label{fig:roc_bot}
+\end{figure}
+
+
+The Precision--Recall curve in Figure~\ref{fig:pr_bot} shows predominantly high coverage in the upper-right region, corresponding to a fixed-threshold F1-score of approximately 0.9922. This indicates that precision and recall remain well-balanced under the selected threshold, with~only a limited number of false alarms and missed~attacks.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0.4cm 0 0.4cm, width=0.78\textwidth]{fig8_pr_bot_iot.png}
+\caption{Precision--Recall curve for the $\beta$-VAE on~BoT-IoT.}
+\label{fig:pr_bot}
+\end{figure}
+
+
+The latent-space projection (Figure~\ref{fig:latent_bot}) shows that benign samples form compact clusters, whereas anomalous samples occupy more distant regions. This structured separation indicates that the model learns a meaningful probabilistic representation of normal traffic behaviour, with~anomalous flows exhibiting weaker conformity to the learned~distribution.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0.4cm 0 0.4cm, width=0.78\textwidth]{fig1_latent_bot_iot.png}
+\caption{Two-dimensional latent-space projection of the $\beta$-VAE on~BoT-IoT.}
+\label{fig:latent_bot}
+\end{figure}
+
+
+\subsection{Cross-Dataset Evaluation on~IoT-23}
+
+To evaluate generalisation, the~trained model is applied to the IoT-23 dataset without retraining or threshold~recalibration.
+
+
+The ROC curve in Figure~\ref{fig:roc_iot23} achieves an AUC of approximately 0.9882, showing that despite the cross-dataset shift from BoT-IoT to IoT-23, the~model retains strong anomaly-ranking capability without retraining or threshold~recalibration.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0.4cm 0 0.4cm, width=0.78\textwidth]{fig15_roc_iot23.png}
+\caption{ROC curve of the $\beta$-VAE on~IoT-23.}
+\label{fig:roc_iot23}
+\end{figure}
+
+
+The reconstruction-error distribution in Figure~\ref{fig:hist_iot23} shows greater overlap between benign and anomalous samples than in BoT-IoT. This reduced separation reflects the effect of cross-dataset domain shift and indicates that the fixed threshold is less closely aligned with the target distribution. Consequently, threshold-based classification becomes more challenging, even though anomaly-ranking performance remains~strong.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0 0 0.2cm, width=0.8\textwidth]{fig12_hist_iot23.png}
+\caption{\hl{Reconstruction-error} %MDPI: Please confirm whether the overlapping content in this figure affects scientific understanding and if it does, please revise it. %AUTHOR: Confirmed. The overlap is intentional and scientifically meaningful -- it reflects greater distribution overlap under cross-dataset domain shift, which is a key finding of the study. No revision required.
+ distribution for IoT-23 under cross-dataset evaluation. The~dashed line represents the fixed source-domain threshold $\tau_{\text{source}}$ learned from benign BoT-IoT training reconstruction~errors.}
+\label{fig:hist_iot23}
+\end{figure}
+
+
+The confusion matrix in Figure~\ref{fig:conf_iot23} shows an increase in false negatives compared to the in-dataset case, corresponding to reduced recall. This suggests that the main performance reduction arises from threshold mismatch rather than a complete loss of discriminative capability. The~false-positive rate remains comparatively controlled, showing that the model maintains a conservative decision boundary at the cost of some missed~detections.
+\begin{figure}[H]
+\includegraphics[width=0.62\textwidth]{fig4_confusion_iot23.png}
+\caption{Confusion matrix for the IoT-23 when using the threshold learned from the~BoT-IoT.}
+\label{fig:conf_iot23}
+\end{figure}
+
+
+The Precision--Recall curve shown in Figure~\ref{fig:pr_iot23} maintains relatively stable precision while preserving a fixed-threshold F1-score of approximately 0.9422. This indicates that anomaly ranking remains strong, although~threshold-based classification becomes more sensitive to dataset-specific distributional~differences.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0.4cm 0 0.4cm, width=0.78\textwidth]{fig9_pr_iot23.png}
+\caption{Precision--Recall curve for the $\beta$-VAE on~IoT-23.}
+\label{fig:pr_iot23}
+\end{figure}
+
+
+\subsection{Cross-Dataset Evaluation on~ToN-IoT}
+
+
+The ROC curve in Figure~\ref{fig:roc_ton} achieves an AUC of approximately 0.9465, indicating strong anomaly-ranking performance under more severe domain shift. Although~performance declines relative to BoT-IoT and IoT-23, the~curve remains well above the random baseline, showing that substantial discriminative capability is~retained.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0.4cm 0 0.4cm, width=0.78\textwidth]{fig16_roc_ton_iot.png}
+\caption{ROC curve for the $\beta$-VAE on~ToN-IoT.}
+\label{fig:roc_ton}
+\end{figure}
+
+
+The reconstruction-error distribution in Figure~\ref{fig:hist_ton} shows greater variance among benign samples and increased overlap with anomalous traffic. This further reduces the effectiveness of a fixed threshold and demonstrates the model's sensitivity to more severe distributional~variation.
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0cm 0 0.2cm, width=0.8\textwidth]{fig13_hist_ton_iot.png}
+\caption{\hl{Reconstruction-error} %MDPI: Please confirm whether the overlapping content in this figure affects scientific understanding and if it does, please revise it. %AUTHOR: Confirmed. The overlap is intentional and scientifically meaningful -- it reflects increased distribution overlap under severe cross-dataset domain shift, demonstrating the model's sensitivity to distributional variation. No revision required.
+ distribution for ToN-IoT. The~dashed line represents the fixed source-domain threshold $\tau_{\text{source}}$ learned from benign BoT-IoT training reconstruction~errors.}
+\label{fig:hist_ton}
+\end{figure}
+
+
+The confusion matrix in Figure~\ref{fig:conf_ton} shows a substantial increase in false negatives, highlighting a pronounced reduction in recall. This confirms that threshold-based decision making becomes less effective under severe domain~shift.
+\begin{figure}[H]
+\includegraphics[trim=0.1cm 0 0 0.2cm, width=0.62\textwidth]{fig5_confusion_ton_iot.png}
+\caption{Confusion matrix for ToN-IoT~evaluation.}
+\label{fig:conf_ton}
+\end{figure}
+
+
+The Precision--Recall curve in Figure~\ref{fig:pr_ton} shows a decline in recall compared to the source-domain setting while maintaining a fixed-threshold F1-score of approximately 0.8732. This further shows that the model can still detect high-confidence anomalies but misses a larger proportion of attacks due to threshold misalignment under severe domain~shift.
+\begin{figure}[H]
+\includegraphics[trim=0.4cm 0.3cm 0 0.4cm, width=0.78\textwidth]{fig10_pr_ton_iot.png}
+\caption{Precision--Recall curve for~ToN-IoT.}
+\label{fig:pr_ton}
+\end{figure}
+
+\subsection{Cross-Dataset Performance~Comparison}
+
+Figure~\ref{fig:auc_all} shows the ROC-AUC values across the three evaluation settings. The~model proposed here achieves approximately 0.9996 on BoT-IoT, 0.9882 on IoT-23, and~0.9465 on ToN-IoT. Although~performance decreases as domain shift becomes more severe, the~decline remains gradual, indicating that the learned latent representation retains substantial anomaly-ranking capability across heterogeneous IoT~environments.
+\begin{figure}[H]
+\includegraphics[width=0.72\textwidth]{fig6_auc_cross_dataset.png}
+\caption{Cross-dataset ROC-AUC~comparison.}
+\label{fig:auc_all}
+\end{figure}
+
+
+\subsection{Comparison with Baseline~Models}
+
+To assess the effectiveness of the proposed solution, the~$\beta$-VAE is compared with four baseline models: a deterministic Autoencoder (AE), Random Forest (RF), Support Vector Machine (SVM), and~Isolation Forest (IF). All models are trained and evaluated on the same ANOVA--MI-selected feature space under identical experimental conditions to ensure a fair~comparison.
+
+Table~\ref{tab:baseline_auc} presents the ROC-AUC performance of all models across the BoT-IoT, IoT-23, and~ToN-IoT~datasets.
+
+Table~\ref{tab:baseline_auc} shows that all baseline models achieve strong in-dataset performance on BoT-IoT, with~Random Forest reaching near-perfect AUC. However, performance degrades substantially under cross-dataset evaluation on IoT-23 and ToN-IoT, indicating limited generalisation capability when exposed to unseen traffic~distributions.
+\begin{table}[H]
+\caption{The comparison of ROC-AUC among the proposed $\beta$-VAE and baseline models across datasets.}
+\label{tab:baseline_auc}
+\begin{tabularx}{\textwidth}{LCCC}
+\toprule
+\textbf{Model} & \textbf{BoT-IoT} & \textbf{IoT-23} & \textbf{ToN-IoT} \\
+\midrule
+$\beta$-VAE (proposed) & \textbf{\hl{0.9996}} & \textbf{\hl{0.9882}} & \textbf{\hl{0.9465}} \\ %MDPI: Please add an explanation for the use of bold in the table footer. If the bold is unnecessary, please remove it. The following highlights are the same. %AUTHOR: Explanation added in the table footer below.
+AE          & 0.984 & 0.811 & 0.702 \\
+RF          & 0.999 & 0.673 & 0.582 \\
+SVM         & 0.976 & 0.702 & 0.611 \\
+IF          & 0.965 & 0.689 & 0.593 \\
+\bottomrule
+\end{tabularx}
+\tablefoot{\textbf{Bold} values indicate the best-performing model for each dataset.} %AUTHOR: Footnote added to explain bold formatting.
+\end{table}
+
+
+
+By contrast, the~proposed $\beta$-VAE maintains consistently high ROC-AUC across all datasets, demonstrating improved robustness to domain shift compared with deterministic reconstruction models and classical machine learning approaches. Whereas supervised models such as Random Forest achieve the highest in-dataset performance, they show pronounced degradation under cross-dataset conditions, reflecting their dependence on dataset-specific patterns. The~$\beta$-VAE, by~comparison, learns a more transferable representation of benign traffic, enabling more stable anomaly ranking across heterogeneous environments. The~pronounced cross-dataset degradation of Random Forest suggests that its decision structure may rely heavily on source-domain feature relationships that do not remain stable in unseen datasets. Because~Random Forest learns discriminative splits from labelled BoT-IoT training data, strong in-dataset ROC-AUC may partly reflect adaptation to dataset-specific correlations or noise patterns rather than invariant characteristics of encrypted IoT traffic. When applied to IoT-23 and ToN-IoT, shifts in feature distributions and in the relative importance of TLS and flow-level variables may therefore weaken the transferability of the learned splits. This interpretation is consistent with the observed pattern: Random Forest achieves the strongest in-dataset score but undergoes the sharpest decline under domain shift, whereas the $\beta$-VAE retains stronger anomaly-ranking stability by modelling benign structure rather than supervised source-specific~boundaries.
+
+\subsection{Sensitivity Analysis of the $\beta$ Parameter}
+
+A sensitivity analysis was conducted to determine the effect of the latent regularisation coefficient $\beta$ on detection performance. The~experiment evaluates $\beta \in \{1,2,4,6\}$ using the same ANOVA--MI-selected feature space, benign-only BoT-IoT training protocol, and~fixed thresholding rule $\tau=\mu+3\sigma$. The~final model adopts $\beta=2$. The~sensitivity analysis results are presented in Table~\ref{tab:beta_sensitivity}.
+
+\begin{table}[H]
+
+\caption{\hl{Sensitivity} %MDPI: Please cite this table in the text and ensure that the first citation of each table appears in numerical order. %AUTHOR: Table cited in the preceding paragraph.
+ analysis of the $\beta$ parameter and justification for selecting $\beta=2$.}
+\label{tab:beta_sensitivity}
+\begin{tabularx}{\textwidth}{CcCCC}
+\toprule
+\boldmath{$\beta$} & \textbf{Mean ROC-AUC} & \textbf{Mean F1} & \textbf{IoT-23 FPR} & \textbf{ToN-IoT FPR} \\
+\midrule
+1 & 0.9852 & 0.9362 & 10.88\% & 26.70\% \\
+\textbf{\hl{2}} & \textbf{\hl{0.9781}} & \textbf{\hl{0.9359}} & \textbf{\hl{5.94\%}} & \textbf{\hl{14.33\%}} \\ %MDPI: Please add an explanation for the use of bold in the table footer. If the bold is unnecessary, please remove it. The following highlights are the same. %AUTHOR: Explanation added in the table footer below.
+4 & 0.9780 & 0.9356 & 5.94\% & 14.30\% \\
+6 & 0.9780 & 0.9358 & 5.94\% & 14.24\% \\
+\bottomrule
+\end{tabularx}
+\tablefoot{\textbf{Bold} row indicates the selected configuration ($\beta=2$) used in the final model.} %AUTHOR: Footnote added to explain bold formatting.
+\end{table}
+
+Although $\beta=1$ produces the highest mean ROC-AUC and a marginally higher mean F1-score, it also yields substantially larger cross-dataset false-positive rates. Specifically, the~false-positive rate reaches 10.88\% on IoT-23 and 26.70\% on ToN-IoT. By~contrast, $\beta=2$ maintains nearly identical mean F1-score while reducing the false-positive rate to 5.94\% and 14.33\%, respectively. Since excessive false alarms reduce the operational usability of intrusion-detection systems, $\beta=2$ is selected as the final configuration because it offers a more appropriate balance between detection sensitivity and false-alarm~control.
+
+
+\subsection{Threshold Sensitivity~Analysis}
+
+
+
+The threshold sensitivity analysis (Figure~\ref{fig:threshold}) illustrates how variations in the decision threshold affect the true positive rate, false positive rate, and~F1-score. As~the threshold $\tau$ increases, the~true positive rate decreases while the false positive rate approaches~zero.
+\begin{figure}[H]
+\includegraphics[trim=0.3cm 0.3cm 0 0.4cm, width=0.8\textwidth]{fig17_threshold_analysis.png}
+\caption{Threshold sensitivity analysis on~BoT-IoT.}
+\label{fig:threshold}
+\end{figure}
+
+
+The F1-score peaks at a threshold between these two extremes. Lower thresholds increase detection sensitivity but introduce a higher rate of false alarms, whereas higher thresholds reduce false positives at the cost of missed~detections.
+
+The fixed threshold ($\tau = \mu + 3\sigma$) performs effectively under in-dataset conditions but becomes suboptimal under cross-dataset evaluation, particularly in ToN-IoT, where recall decreases significantly. This reinforces the observation that the primary limitation of the proposed approach lies in threshold calibration rather than anomaly-ranking capability. These results highlight the importance of adaptive thresholding strategies for real-world deployment in heterogeneous IoT~environments.
+
+
+\subsection{Ablation Study of ANOVA--Mutual Information Feature~Selection}
+
+To quantify the contribution of the proposed feature-selection stage, an~ablation study was conducted using four configurations: no feature selection, ANOVA-only selection, Mutual Information-only selection, and~the proposed hybrid ANOVA--MI strategy. In~all cases, the~$\beta$-VAE architecture, $\beta$ value, training procedure, thresholding rule, and~cross-dataset evaluation protocol were kept unchanged. Feature selection was fitted only on BoT-IoT training data, and~the selected source-domain feature indices were reused unchanged for IoT-23 and~ToN-IoT.
+
+
+
+The results in Table~\ref{tab:feature_ablation} provide empirical support for the role of feature selection in the proposed framework. Relative to the no-selection configuration, all three feature-selection variants substantially improve F1-score across BoT-IoT, IoT-23, and~ToN-IoT while reducing the input dimensionality from 30 to 20 features. The~proposed ANOVA--MI strategy provides the strongest overall balance, achieving the highest IoT-23 F1-score and competitive or best ROC-AUC values across datasets. The~mean AUC and mean F1 values further show that ANOVA--MI performs comparably to the strongest individual feature-selection method while retaining a more theoretically grounded combination of variance-based class separation and information-theoretic dependency ranking. Although~MI-only selection slightly outperforms ANOVA--MI on ToN-IoT F1-score, the~hybrid method maintains consistently strong performance across all evaluation settings. These findings support the claim that combining ANOVA and Mutual Information improves the stability and cross-dataset generalisation of the anomaly-detection pipeline compared with using the full unfiltered metadata feature~space.
+\begin{table}[H]
+\caption{Ablation study of feature-selection strategies for the proposed $\beta$-VAE~framework.}
+\label{tab:feature_ablation}
+\footnotesize
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{tabularx}{\fulllength}{lCCCcCCCCcC}
+\toprule
+\textbf{Method} & \textbf{Features} & \textbf{BoT-AUC} & \textbf{BoT-F1} & \textbf{IoT23-AUC} & \textbf{IoT23-F1} & \textbf{ToN-AUC} & \textbf{ToN-F1} & \textbf{Mean~AUC} & \textbf{Mean F1} \\
+\midrule
+No Feature Selection & 30 & 0.9961 & 0.9324 & 0.9702 & 0.8584 & 0.9140 & 0.7658 & 0.9601 & 0.8522 \\
+ANOVA Only           & 20 & 0.9997 & 0.9911 & 0.9871 & 0.9414 & 0.9407 & 0.8677 & 0.9758 & 0.9334 \\
+MI Only              & 20 & 0.9996 & 0.9922 & 0.9882 & 0.9417 & 0.9464 & 0.8737 & 0.9781 & 0.9359 \\
+ANOVA--MI            & 20 & 0.9996 & 0.9922 & 0.9882 & 0.9422 & 0.9465 & 0.8732 & 0.9781 & 0.9359 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Simulated Streaming~Evaluation}
+
+To assess operational feasibility in real-time network monitoring scenarios, the~trained $\beta$-VAE was evaluated in a simulated streaming mode, processing test flows one sample at a time without batching. This represents the worst-case latency scenario for deployment at a network~gateway.
+
+
+The latency distribution (Figure~\ref{fig:streaming}) shows that the mean per-flow inference time is approximately 161~\textmu s, with~a 95th-percentile latency of 236~\textmu s. Throughput reaches \hl{6213} %MDPI: Commas are only used for numbers with five or more digits. We have removed them in four-digit numbers. Please confirm. %AUTHOR: Confirmed.
+ flows per second in single-sample mode and exceeds 500{,}000 flows per second when processing batches of 1000 flows ($\approx$2~\textmu s per sample), consistent with the ablation study timing reported in Appendix~\ref{AppB}. These figures demonstrate that the model can process IoT network flows well within the inter-arrival times typical of real-world IoT environments, supporting its suitability for near-real-time anomaly detection. All inference was performed on a standard CPU without GPU acceleration, indicating that the framework is compatible with resource-constrained gateway deployments. Full real-time evaluation on live network traffic remains a direction for future~work.\vspace{-3pt}
+\begin{figure}[H]
+\includegraphics[trim=0.2cm 0 0 0cm, width=0.78\textwidth]{fig18_streaming_latency.png}
+\caption{Per-flow inference latency distribution under simulated streaming evaluation on BoT-IoT (single-sample mode, CPU-only).}
+\label{fig:streaming}
+\end{figure}
+
+
+\subsection{Adaptive Thresholding~Investigation}
+
+To address the limitation of fixed threshold calibration, three thresholding strategies are empirically compared across all datasets. (1)~\textbf{\hl{Fixed}}: %MDPI: Please confirm if the bold formatting is necessary; if not, please remove it. The following highlights are the same. %AUTHOR: Confirmed. Bold is retained to clearly distinguish the three named thresholding strategies within the enumeration.
+$\tau = \mu_{\text{train}} + 3\sigma_{\text{train}}$ derived from the source-domain benign training errors (current approach). (2)~\textbf{\hl{Robust MAD}}: $\tau = \text{median}(\mathcal{C}) + 3 \cdot \text{MAD}(\mathcal{C})$, where $\mathcal{C}$ is a 10\% unsupervised calibration window of target-domain flows and MAD is the median absolute deviation, which is robust to attack-sample contamination of the calibration window. (3)~\textbf{\hl{EMA Adaptive}}: an exponential moving average update seeded with source-domain statistics, where only flows classified as benign under the current threshold are used to update the running mean and standard~deviation.
+
+
+As shown in Figure~\ref{fig:adaptive}, the~fixed source-domain threshold consistently outperforms both unsupervised adaptive strategies under cross-dataset evaluation. The~robust MAD and EMA approaches produce thresholds that are too conservative, because~the unsupervised calibration window contains a substantial proportion of attack flows whose high reconstruction errors inflate the estimated threshold, causing the adapted boundary to miss most anomalies. This finding highlights a fundamental challenge in unsupervised adaptive thresholding: without knowledge of which calibration samples are benign, adaptation can be misled by attack-sample contamination. The~EMA strategy provides a moderate improvement in recall on BoT-IoT (in-dataset) by lowering the effective threshold over time, but~degrades under cross-dataset shift for the same reason. These results suggest that robust adaptive thresholding for encrypted IoT traffic requires either labelled calibration data or a separate benign-traffic identification mechanism, and~motivate future work on supervised or semi-supervised online threshold~adaptation.
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{fig19_adaptive_threshold.png}
+\caption{\hl{Comparison} %MDPI: Please confirm whether the overlapping content in this figure affects scientific understanding and if it does, please revise it. %AUTHOR: Confirmed. The overlapping bars are intentional -- they reflect actual F1-score, recall, and FPR values for three strategies across three datasets and are central to the scientific comparison. No revision required.
+ of fixed and adaptive thresholding strategies across datasets: F1-score, recall, and~FPR.}
+\label{fig:adaptive}
+\end{figure}
+
+
+\subsection{Temporal Flow-Window~Analysis}
+
+The per-flow detection model classifies each network flow independently. To~investigate whether temporal context improves detection---particularly for multi-flow correlated attacks---a sliding window aggregation approach is evaluated. Consecutive flows are grouped into non-overlapping windows of size $W \in \{1, 5, 10, 20\}$, and~each window is classified as anomalous if its aggregate reconstruction error exceeds the threshold. Two aggregation strategies are compared: \textbf{\hl{win-max}} (window score = maximum flow error, $\tau_{\text{fixed}}$) and \textbf{\hl{win-mean}} (window score = mean flow error, $\tau_{\text{mean}} = \mu_{\text{train}} + 2\sigma_{\text{train}}$, a~slightly relaxed threshold suited to averaged signals). A~window's true label is positive if any constituent flow is an~attack.
+
+
+The results (Figure~\ref{fig:temporal}) show that temporal aggregation substantially improves cross-dataset detection performance. On~ToN-IoT, the~most challenging evaluation setting, win-mean with $W=20$ raises F1-score from 0.8732 (per-flow) to 0.992 and recall from 0.8861 to 0.985, while simultaneously eliminating false positives (FPR = 0.000). Similar improvements are observed on IoT-23, where win-mean with $W=10$ achieves F1 = 0.963 and FPR = 0.000, compared with F1 = 0.9422 and FPR = 0.0594 for per-flow classification. The~improvement arises because averaging reconstruction errors over a window suppresses per-flow noise and reinforces the signal from sustained or multi-flow attack patterns, making the decision boundary more stable under distribution shift. These findings demonstrate that simple temporal aggregation of reconstruction errors---without modifying the underlying model architecture---provides a practical and computationally lightweight mechanism for improving cross-dataset detection. Integrating temporal sequence modelling directly into the $\beta$-VAE architecture (e.g., via recurrent or temporal convolutional encoders) represents an important direction for future~work.
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{fig20_temporal_window.png}
+\caption{F1-score vs window size for per-flow, win-max, and~win-mean strategies across~datasets.}
+\label{fig:temporal}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Discussion} \label{sec6}
+
+The results demonstrate that probabilistic latent modelling using a $\beta$-Variational Autoencoder ($\beta$-VAE) provides an effective approach for anomaly detection in encrypted IoT environments. The~strong in-dataset performance on BoT-IoT indicates that the model successfully captures the statistical characteristics of benign encrypted traffic. The~clear separation observed in reconstruction-error distributions and latent-space representations suggests that modelling normal behaviour within a structured probabilistic space improves anomaly discrimination under encryption constraints. This observation is consistent with prior work showing that variational autoencoders learn more expressive and structured representations than deterministic autoencoders in anomaly detection~tasks.
+
+A key contribution of this study is the explicit evaluation of cross-dataset generalisation. Unlike many existing approaches that report near-perfect performance within a single dataset, often exceeding 99\% on single-dataset classification metrics such as F1-score or ROC-AUC, the~proposed framework evaluates performance across IoT-23 and ToN-IoT without retraining or threshold recalibration. Such single-dataset evaluations do not reflect real-world deployment conditions, where traffic distributions vary significantly across environments. In~contrast, the~results demonstrate that while anomaly-ranking performance remains strong across datasets, classification performance degrades due to threshold mismatch. This highlights a critical gap between laboratory evaluation and operational~deployment.
+
+The robustness of the $\beta$-VAE can be attributed to the increased weight of the Kullback--Leibler divergence term, which enforces latent-space regularisation and promotes disentangled representations. These representations reduce sensitivity to dataset-specific correlations and encourage the model to capture invariant characteristics of benign traffic. As~a result, anomalous samples remain separable even when the underlying data distribution changes, supporting improved generalisation under distributional~shift.
+
+Despite strong ranking performance, the~results reveal a key limitation related to thresholding. While ROC-AUC remains high across datasets, recall decreases under cross-dataset evaluation, particularly in the ToN-IoT scenario. This behaviour arises from increased variance in benign traffic distributions, which leads to greater overlap with anomalous samples when a fixed threshold is applied. This is consistent with the broader anomaly-detection literature showing that threshold selection is sensitive to distributional assumptions and deployment-domain shift~\cite{chandola2009,cantone2024}. These findings indicate that the primary bottleneck lies in threshold calibration rather than representation learning.
+Distributed and ensemble-based anomaly detection approaches have also been explored to improve scalability and robustness in large-scale network environments, although~their applicability to encrypted IoT traffic remains limited~\cite{moustafa2021b}.
+
+The integration of ANOVA and Mutual Information feature selection contributes to improved model stability and generalisation, as~demonstrated by the ablation study in Table~\ref{tab:feature_ablation}. Compared with the no-selection configuration, the~hybrid ANOVA--MI pipeline reduces the retained feature space from 30 to 20 variables while improving F1-score across all three datasets. This indicates that removing weaker or redundant metadata dimensions helps the $\beta$-VAE learn a more transferable benign representation. The~result is consistent with prior intrusion-detection research showing that information-theoretic and hybrid statistical feature-selection strategies can enhance detection efficiency and robustness~\cite{amiri2011,alsarem2022}.
+
+
+
+From a practical perspective, the~proposed TLS-aware framework is well-suited to modern privacy-preserving environments. By~relying exclusively on flow-level statistics and TLS metadata, the~approach avoids payload inspection while maintaining strong detection performance. This is particularly important in contemporary network security architectures, where widespread adoption of encryption limits the applicability of deep packet inspection. The~framework therefore aligns with emerging zero-trust and privacy-preserving security paradigms. In~principle, the~lightweight inference profile of the proposed model may support future integration into gateway-level monitoring pipelines, although~production deployment and live-system validation remain outside the scope of the current~study.
+
+While our framework has several advantages, it is limited by a number of factors. First, the~use of a fixed reconstruction-error threshold leads to reduced recall under severe domain shift; the $\mu + 3\sigma$ rule assumes an approximately Gaussian error distribution, which may not hold for all IoT traffic profiles. Second, the~framework does not incorporate temporal modelling, which may be necessary to detect sequential or low-rate attacks, as~highlighted in recent studies~\cite{owoh2024}. Third, all evaluations were conducted on offline benchmark datasets; consequently, the~behaviour of the framework under fully real-time or streaming traffic conditions has not yet been empirically validated, and~latency or memory constraints of resource-limited IoT gateways have not been characterised. Fourth, because~all three datasets used are publicly available benchmarks, they may not fully capture the diversity of real-world enterprise or industrial IoT deployments, and~future work should assess generalisation on operationally collected traffic. Fifth, all reported metrics are based on a single experimental run per configuration rather than repeated trials with statistical testing; confidence intervals and cross-validation were not applied, so the reported differences between methods should be interpreted as indicative rather than statistically confirmed. Sixth, the~streaming evaluation was conducted in simulation using recorded offline traffic; on-device latency may differ depending on hardware constraints and operating system scheduling~overhead.
+
+An important direction for improvement is the development of adaptive thresholding mechanisms that respond to evolving reconstruction-error distributions. Additionally, incorporating temporal modelling, such as temporal convolutional networks or sequence-based variational architectures, may improve the detection of complex attack patterns. Further exploration of latent-space density estimation or likelihood-based scoring could provide more stable anomaly thresholds across heterogeneous environments. Extending the framework to online or continual learning settings would also enable adaptation to evolving traffic patterns, which is essential for real-world IoT deployment.%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Conclusions} \label{sec7}
+
+This research presented a TLS-aware anomaly detection framework for encrypted IoT traffic based on a $\beta$-Variational Autoencoder integrated with a hybrid ANOVA--Mutual Information feature-selection pipeline. By~operating exclusively on flow-level statistics and TLS metadata, the~proposed approach addresses the loss of payload visibility inherent in modern IoT communications while preserving data confidentiality. Experimental evaluation across the BoT-IoT, IoT-23, and~ToN-IoT datasets demonstrates that the proposed $\beta$-VAE learns a compact and generalisable probabilistic representation of benign encrypted IoT behaviour. The~added ablation study confirms that the ANOVA--MI feature-selection stage materially improves cross-dataset detection performance relative to no feature selection, and~maintains consistently strong performance compared with single-criterion filtering, while the $\beta$ sensitivity analysis supports the selection of $\beta=2$ as a balanced operating point with substantially lower false-positive rates under target-domain~evaluation.
+
+A key finding of this study is that, while anomaly ranking remains stable across datasets, classification performance is primarily constrained by threshold selection. This suggests that the principal limitation of reconstruction-based anomaly detection in encrypted environments lies in threshold calibration rather than representation learning. This insight has important implications for the deployment of anomaly detection systems in heterogeneous IoT environments. From~a methodological perspective, the~integration of probabilistic latent modelling with statistical feature selection provides an effective strategy for handling high-dimensional encrypted traffic data while improving generalisation. From~a practical perspective, the~proposed framework demonstrates strong applicability for privacy-preserving intrusion detection systems where payload inspection is not~feasible.
+
+The simulated streaming evaluation confirms that the model processes flows at approximately 161~\textmu s per flow in worst-case single-sample mode and at under 2~\textmu s per flow in batch mode, supporting near-real-time feasibility under simulated streaming conditions on standard CPU hardware. The~adaptive thresholding investigation shows that unsupervised calibration approaches are degraded by attack-sample contamination of the calibration window, highlighting that robust adaptive thresholding requires either labelled benign data or a dedicated contamination-resistant estimation method. The~temporal window analysis demonstrates that aggregating reconstruction errors over windows of 10--20 flows substantially improves cross-dataset recall and F1-score without modifying the model architecture, achieving very strong in-dataset detection on BoT-IoT and substantial improvements on IoT-23 and~ToN-IoT.
+
+Future work should focus on integrating temporal sequence modelling directly into the $\beta$-VAE encoder (e.g., via temporal convolutional networks or recurrent architectures), developing supervised or semi-supervised adaptive thresholding mechanisms resistant to attack contamination, and~validating the framework on live network traffic. Alternative anomaly scoring strategies based on latent-space distances or probabilistic likelihood estimation may also provide more stable decision boundaries under distribution shift. Extending the framework to online learning and real-time deployment scenarios remains an important direction for enabling operational use in dynamic IoT environments. Overall, the~results demonstrate that $\beta$-VAE-based probabilistic modelling, combined with ANOVA--MI feature selection and TLS-aware preprocessing, provides a robust and scalable foundation for anomaly detection in encrypted IoT networks under realistic cross-dataset~\hl{conditions.} %MDPI: We removed section Patents, please confirm. %AUTHOR: Confirmed. No patents to report.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{Patents}
+%
+%No patents have been filed or are pending in association with this~work.
+
+\vspace{6pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\authorcontributions{M.N.:~Conceptualization, Methodology, Software, Validation, Formal Analysis, Investigation, Data Curation, Writing---Original Draft Preparation, Writing---Review and Editing, Visualisation. R.U.:~Conceptualization, Validation, Writing---Review and Editing, Supervision, Project Administration. M.H.:~Conceptualization, Validation, Writing---Review and Editing, Supervision.
+\hl{All~authors} %MDPI: We removed--Funding Acquisition, not applicable. Please confirm. %AUTHOR: Confirmed. Funding Acquisition is not applicable.
+ have read and agreed to the published version of the manuscript.}
+
+\funding{This work received no external~funding.}
+
+\institutionalreview{Not applicable.~This research did not involve human participants or animals, and~all datasets used were open access datasets.}
+
+\informedconsent{Not applicable.}
+
+\dataavailability{The datasets used in this study are publicly available. The~BoT-IoT dataset is available from the UNSW Canberra Cyber repository, the~IoT-23 dataset is available from the Stratosphere IPS project, and~the ToN\_IoT dataset is available from the UNSW IoT Lab. Processed features and experimental configurations used in this research are available from the corresponding author upon reasonable request.}
+
+\acknowledgments{The University of the West of Scotland is thanked for providing the academic environment and computational facilities for conducting this research. Finally, the~authors thank their supervisors for their guidance and constructive criticism throughout this~work.}
+
+\conflictsofinterest{The authors declare no conflicts of interest. The~funders had no role in the design of the study; in the collection, analyses, or~interpretation of data; in the writing of the manuscript, or~in the decision to publish the~results.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\abbreviations{Abbreviations}{
+The following abbreviations are used in this manuscript:\\
+
+\noindent
+\begin{tabular}{@{}ll}
+IoT & Internet of Things\\
+IDS & Intrusion Detection System\\
+TLS & Transport Layer Security\\
+VAE & Variational Autoencoder\\
+$\beta$-VAE & Beta Variational Autoencoder\\
+ANOVA & Analysis of Variance\\
+MI & Mutual Information\\
+ROC & Receiver Operating Characteristic\\
+AUC & Area Under the Curve\\
+PR & Precision--Recall\\
+JA3 & TLS Client Fingerprint\\
+JA3S & TLS Server Fingerprint\\
+PCAP & Packet Capture\\
+DNN & Deep Neural Network\\
+RF & Random Forest\\
+SVM & Support Vector Machine\\
+AE & Autoencoder\\
+API & Application Programming Interface
+\end{tabular}
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendixtitles{yes}
+\appendixstart
+\appendix
+
+\section{Feature Selection~Details}
+
+This appendix provides additional details regarding the statistical feature-selection process used in this research. Following flow-level and TLS metadata extraction using Zeek and CICFlowMeter, the~initial unified feature space contained 30 numerical variables. A~hybrid ANOVA--Mutual Information filtering approach was applied to reduce redundancy and preserve discriminative~information.
+
+The ANOVA F-test evaluates each feature according to class-separation strength, while Mutual Information captures potentially non-linear dependence between each feature and the benign/attack label. Both score vectors are min--max-normalised and then combined through an additive ranking score. Features are sorted in descending order according to this hybrid score, and~the top 20 features are retained. The~feature selector is fitted only on the BoT-IoT training data, and~the same selected indices are applied unchanged to IoT-23 and ToN-IoT during cross-dataset~evaluation.
+
+\begin{table}[H]
+\caption{Representative categories of features selected using the ANOVA--Mutual Information pipeline.\label{tabA1}}
+\begin{tabularx}{\textwidth}{ll}
+\toprule
+\textbf{Feature Category} & \textbf{Example Features} \\
+\midrule
+Flow Statistics & Flow duration, packet count, byte count, inter-arrival~time \\
+TLS Metadata & TLS version, cypher suite, JA3 fingerprint, JA3S~fingerprint \\
+Traffic Behaviour & Packet size variance, forward--backward~ratio \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\unskip
+
+\section{Model Configuration and~Hyperparameters} \label{AppB}
+
+This appendix summarises the key architectural and training parameters used for the $\beta$-VAE model. The~encoder and decoder networks were implemented as fully connected neural networks with symmetric architecture. Hyperparameters were selected through a combination of grid search, empirical tuning on the BoT-IoT validation split, and~the dedicated $\beta$ sensitivity analysis reported in Section~5.6.
+
+The latent dimension was set to 16 after evaluating candidate values of 8, 12, and~16 on a held-out validation partition of BoT-IoT benign traffic. A~dimension of 16 produced the lowest validation reconstruction error while retaining sufficient compactness for anomaly separation. Training was conducted for 50 epochs, at~which point reconstruction loss had converged on the training set with no further improvement on the validation set. The~batch size of 256 and learning rate of $10^{-3}$ were fixed following standard practice for Adam-optimised autoencoders on tabular data and were not further tuned. The~$\beta$ coefficient was selected via the sensitivity study described in Section~5.6, which evaluated $\beta \in \{1,2,4,6\}$ and selected $\beta=2$ based on the optimal balance between detection performance and false-positive rate under cross-dataset~evaluation.
+
+\begin{table}[H]
+\caption{Summary of $\beta$-VAE model configuration, training parameters, and~computational~cost.\label{tabA2}}
+\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Parameter} & \textbf{Value/Rationale} \\
+\midrule
+Latent dimension & 16 (selected from \{8, 12, 16\} by validation reconstruction error) \\
+$\beta$ coefficient & 2 (selected from \{1, 2, 4, 6\} by sensitivity analysis; substantially lower FPR than $\beta = 1$ while maintaining near-identical F1) \\
+Optimiser & Adam \\
+Learning rate & $1 \times 10^{-3}$ (standard for Adam on tabular autoencoders) \\
+Batch size & 256 \\
+Training epochs & 50 (convergence verified on held-out validation set) \\
+Anomaly threshold & $\mu + 3\sigma$ derived from benign BoT-IoT training reconstruction~errors \\
+Training time (BoT-IoT) & $\approx$33 s on a standard CPU (Intel Core i7, no GPU required) \\
+Inference speed & $\approx$2~ms per 1000 flows ($<$2~\textmu s per flow); suitable for near-real-time deployment \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\unskip
+
+\section{Additional Evaluation~Results}
+
+The additional details in this appendix document the feature-selection procedure and model configuration used for the main evaluation. No separate online supplementary figures are~referenced.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{adjustwidth}{-\extralength}{0cm}
+  \reftitle{References}
+
+  \begin{thebibliography}{999}
+  
+\bibitem[Anderson and McGrew(2016)]{anderson2016}
+  Anderson, B.; McGrew, D. Identifying encrypted malware traffic with contextual flow data. In Proceedings of the ACM Workshop on Artificial Intelligence and Security (AISec), Vienna, Austria, 28 October 2016; pp. 35--46. \url{https://doi.org/10.1145/2996758.2996768}.
+
+  
+\bibitem[Ahmad et al.(2021)]{ahmad2021}
+  Ahmad, Z.; Khan, A.S.; Nisar, K.; Haider, I.; Hassan, R.; Haque, M.R.; Tarmizi, S.; Rodrigues, J.J.P.C. Anomaly detection using deep neural network for IoT architecture. \emph{Appl. Sci.} \textbf{2021}, \emph{11}, 7050. \url{https://doi.org/10.3390/app11157050}.
+
+  
+\bibitem[Rezaei and Liu(2022)]{rezaei2022}
+  Rezaei, S.; Liu, X. A survey on TLS-encrypted malware network traffic analysis applicable to security operations centers. \emph{Appl. Sci.} \textbf{2022}, \emph{12}, 155. \url{https://doi.org/10.3390/app12010155}.
+
+  
+\bibitem[Ji et al.(2024)]{ji2024}
+  Ji, I.H.; Lee, J.H.; Kang, M.J.; Park, W.J.; Jeon, S.H.; Seo, J.T. Artificial intelligence-based anomaly detection technology over encrypted traffic: A systematic literature review. \emph{Sensors} \textbf{2024}, \emph{24}, 898. \url{https://doi.org/10.3390/s24030898}.
+
+  
+\bibitem[Chandola et al.(2009)]{chandola2009}
+  Chandola, V.; Banerjee, A.; Kumar, V. Anomaly detection: A survey. \emph{ACM Comput. Surv.} \textbf{2009}, \emph{41}, 15. \url{https://doi.org/10.1145/1541880.1541882}.
+
+  
+\bibitem[Owoh et al.(2024)]{owoh2024}
+  Owoh, N.; Riley, J.; Ashawa, M.; Hosseinzadeh, S.; Philip, A.; Osamor, J. An adaptive temporal convolutional network autoencoder for malicious data detection in mobile crowd sensing. \emph{Sensors} \textbf{2024}, \emph{24}, 2353. \url{https://doi.org/10.3390/s24072353}.
+
+  
+\bibitem[Lopez-Martin et al.(2017)]{lopez2017}
+  Lopez-Martin, M.; Carro, B.; Sanchez-Esguevillas, A.; Lloret, J. Conditional variational autoencoder for prediction and feature recovery applied to intrusion detection in IoT. \emph{Sensors} \textbf{2017}, \emph{17}, 1967. \url{https://doi.org/10.3390/s17091967}.
+
+  
+\bibitem[Alaghbari et al.(2023)]{alaghbari2023}
+  Alaghbari, K.A.; Lim, H.S.; Saad, M.H.M.; Yong, Y.S. Deep autoencoder-based integrated model for anomaly detection and efficient feature extraction in IoT networks. \emph{Internet Things} \textbf{2023}, \emph{4}, 345--365. \url{https://doi.org/10.3390/iot4030016}.
+
+  
+\bibitem[Amiri et al.(2011)]{amiri2011}
+  Amiri, F.; Rezaei Yousefi, M.M.; Lucas, C.; Shakery, A.; Yazdani, N. Mutual information-based feature selection for intrusion detection systems. \emph{J. Netw. Comput. Appl.} \textbf{2011}, \emph{34}, 1184--1199. \url{https://doi.org/10.1016/j.jnca.2011.01.002}.
+
+  
+\bibitem[Al-Sarem et al.(2022)]{alsarem2022}
+  Al-Sarem, M.; Saeed, F.; Alkhammash, E.H.; Alghamdi, N.S. An aggregated mutual information based feature selection with machine learning methods for enhancing IoT botnet attack detection. \emph{Sensors} \textbf{2022}, \emph{22}, 185. \url{https://doi.org/10.3390/s22010185}.
+
+  
+\bibitem[Cantone et al.(2024)]{cantone2024}
+  Cantone, M.; Marrocco, C.; Bria, A. Machine learning in network intrusion detection: A cross-dataset generalization study. \emph{IEEE Access} \textbf{2024}, \emph{12}, 144489--144508. \url{https://doi.org/10.1109/ACCESS.2024.3472907}.
+
+  
+\bibitem[Althouse et al.(2019)]{althouse2019}
+  Althouse, J.; Atkinson, J.; Atkins, J. TLS Fingerprinting with JA3 and JA3S. Salesforce Engineering Blog. 2019. Available online: \url{https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967} (accessed on 22 May 2026).
+
+  
+\bibitem[Garcia et al.(2020)]{garcia2020}
+  Garcia, S.; Parmisano, A.; Erquiaga, M.J. IoT-23: A labeled dataset with malicious and benign IoT network traffic (Version 1.0.0). \emph{Zenodo} \textbf{\hl{2020}}. \url{https://doi.org/10.5281/zenodo.4743746}.  %MDPI: We are sorry but we could not find the required information about this entry. Please add the volume and page number, if available. %AUTHOR: This is a dataset repository entry hosted on Zenodo. No volume or page numbers are associated with this type of publication.
+
+  
+\bibitem[Moustafa(2021)]{moustafa2021a}
+  Moustafa, N. A new distributed architecture for evaluating AI-based security systems at the edge: Network TON\_IoT datasets. \emph{Sustain. Cities Soc.} \textbf{2021}, \emph{72}, 102994. \url{https://doi.org/10.1016/j.scs.2021.102994}.
+
+  
+\bibitem[Chatterjee and Ahmed(2022)]{chatterjee2022}
+  Chatterjee, A.; Ahmed, B.S. IoT anomaly detection methods and applications: A survey. \emph{Internet Things} \textbf{2022}, \emph{19}, 100568. \url{https://doi.org/10.1016/j.iot.2022.100568}.
+
+  
+\bibitem[Kumari et al.(2024)]{kumari2024}
+  Kumari, S.; Prabha, C.; Karim, A.; Hassan, M.M.; Azam, S. A comprehensive investigation of anomaly detection methods in deep learning and machine learning: 2019--2023. \emph{IET Inf. Secur.} \textbf{2024}, \emph{2024}, 8821891. \url{https://doi.org/10.1049/2024/8821891}.
+
+  
+\bibitem[Iturbe Araya and Rif{\`a}-Pous(2023)]{araya2023}
+  Iturbe Araya, J.I.; Rifà-Pous, H. Anomaly-based cyberattacks detection for smart homes: A systematic literature review. \emph{Internet Things} \textbf{2023}, \emph{22}, 100792. \url{https://doi.org/10.1016/j.iot.2023.100792}.
+
+  
+\bibitem[Altulaihan et al.(2024)]{altulaihan2024}
+  Altulaihan, E.; Almaiah, M.A.; Aljughaiman, A. Anomaly detection IDS for detecting DoS attacks in IoT networks based on machine learning algorithms. \emph{Sensors} \textbf{2024}, \emph{24}, 713. \url{https://doi.org/10.3390/s24020713}.
+
+  
+\bibitem[Hou et al.(2022)]{hou2022}
+  Hou, Y.; He, R.; Dong, J.; Yang, Y.; Ma, W. IoT anomaly detection based on autoencoder and Bayesian Gaussian mixture model. \emph{Electronics} \textbf{2022}, \emph{11}, 3287. \url{https://doi.org/10.3390/electronics11203287}.
+
+  
+\bibitem[Ayad et al.(2025)]{ayad2025}
+  Ayad, A.G.; El-Gayar, M.M.; Hikal, N.A.; Sakr, N.A. Efficient real-time anomaly detection in IoT networks using one-class autoencoder and deep neural network. \emph{Electronics} \textbf{2025}, \emph{14}, 104. \url{https://doi.org/10.3390/electronics14010104}.
+
+  
+\bibitem[Berraadi et al.(2025)]{berraadi2025}
+  Berraadi, O.; Gibet Tani, H.; Ben Ahmed, M. Enhancing security and privacy in IoT data streams: Real-time anomaly detection for threat mitigation in traffic management. \emph{Comput. Sci. Math. Forum} \textbf{2025}, \emph{10}, 8. \url{https://doi.org/10.3390/cmsf2025010008}.
+
+  
+\bibitem[Wang et al.(2024)]{wang2024}
+  Wang, H.; Hu, P.; Gao, M.; Jiang, Y.; Wang, J.; Chen, T. An intrusion detection method combining variational auto-encoder and generative adversarial networks. \emph{Comput. Netw.} \textbf{2024}, \emph{253}, 110724. \url{https://doi.org/10.1016/j.comnet.2024.110724}.
+
+  
+\bibitem[Fotiadou et al.(2021)]{fotiadou2021}
+  Fotiadou, K.; Velivassaki, T.H.; Voulkidis, A.; Skias, D.; Tsekeridou, S.; Zahariadis, T. Network traffic anomaly detection via deep learning. \emph{Information} \textbf{2021}, \emph{12}, 215. \url{https://doi.org/10.3390/info12050215}.
+
+  
+\bibitem[The Zeek Project(2023)]{zeek2023}
+  The Zeek Project. Zeek Network Security Monitor (Version 6.0). 2023. Available online: \url{https://zeek.org} (accessed on \mbox{22 May 2026}).
+
+  
+\bibitem[Wang and Thing(2023)]{wang2023}
+  Wang, Z.; Thing, V.L.L. Feature mining for encrypted malicious traffic detection with deep learning and other machine learning algorithms. \emph{Comput. Secur.} \textbf{2023}, \emph{128}, 103143. \url{https://doi.org/10.1016/j.cose.2023.103143}.
+
+  
+\bibitem[Long and Zhang(2023)]{long2023}
+  Long, G.; Zhang, Z. Deep Encrypted Traffic Detection: An Anomaly Detection Framework for Encryption Traffic Based on Parallel Automatic Feature Extraction. \emph{Comput. Intell. Neurosci.} \textbf{2023}, \emph{2023 }, 3316642. \url{https://doi.org/10.1155/2023/3316642}.
+
+  
+\bibitem[Koroniotis et al.(2019)]{koroniotis2019}
+  Koroniotis, N.; Moustafa, N.; Sitnikova, E.; Turnbull, B. Towards the development of realistic botnet dataset in the Internet of Things for network forensic analytics: Bot-IoT dataset. \emph{Future Gener. Comput. Syst.} \textbf{2019}, \emph{100}, 779--796. \url{https://doi.org/10.1016/j.future.2019.05.041}.
+
+  
+\bibitem[Sattar et al.(2025)]{sattar2025b}
+  Sattar, S.; Khan, S.; Khan, M.I.; Akhmediyarova, A.; Mamyrbayev, O.; Kassymova, D.; Oralbekova, D.; Alimkulova, J. Anomaly detection in encrypted network traffic using self-supervised learning. \emph{Sci. Rep.} \textbf{2025}, \emph{15}, 26585. \url{https://doi.org/10.1038/s41598-025-08568-0}.
+\clearpage 
+  
+\bibitem[Li et al.(2026)]{li2025}
+  Li, H.; Kang, H.; Liu, C.; Wang, R.; Li, J.; Sun, G.; Wang, J.; Liang, S.; Mao, S. Encrypted traffic detection in resource-constrained IoT networks: A diffusion model and LLM integrated framework. \emph{IEEE Trans. Netw. Sci. Eng.} \textbf{2026}, \emph{13}, 5324--5344. \url{https://doi.org/10.1109/TNSE.2025.3649259}.
+
+  
+\bibitem[Moustafa et al.(2021)]{moustafa2021b}
+  Moustafa, N.; Keshk, M.; Choo, K.R.; Lynar, T.; Camtepe, S.; Whitty, M. DAD: A distributed anomaly detection system using ensemble one-class statistical learning in edge networks. \emph{Future Gener. Comput. Syst.} \textbf{2021}, \emph{118}, 240--251. \url{https://doi.org/10.1016/j.future.2021.01.011}.
+  
+  \end{thebibliography}
+  
+
+\PublishersNote{}
+\end{adjustwidth}
+\end{document}

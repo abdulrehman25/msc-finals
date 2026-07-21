@@ -1,0 +1,12 @@
+{
+  "input_dim": 11,
+  "threshold": 2.727672576904297,
+  "window": 20,
+  "percentile": 95.0,
+  "session_mode": "grouped",
+  "n_sessions": 7594,
+  "trained_on": [
+    "data/raw/access_super_long_session_2000.log",
+    "data/csic/csic_eval.log"
+  ]
+}

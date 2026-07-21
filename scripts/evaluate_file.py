@@ -6,6 +6,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 import argparse, json, os, math
 from pathlib import Path
+from collections import deque
 import numpy as np
 from sklearn.metrics import (
     roc_auc_score, average_precision_score, f1_score,
@@ -18,6 +19,7 @@ from sklearn.metrics import roc_auc_score, average_precision_score, f1_score, pr
 from src.featurization.features import line_to_vector
 from src.models.content_autoencoder import ContentAE
 from src.models.session_lstm_vae import SessionLSTMVAE
+from src.pipeline.metrics_extra import compute_low_alert_metrics
 
 def load_content_bundle():
     p = Path("artifacts/content")
@@ -29,8 +31,8 @@ def load_content_bundle():
     model.eval()
     return {"scaler":scaler, "model":model, "thr":float(cfg["threshold"])}
 
-def load_session_bundle():
-    p = Path("artifacts/session")
+def load_session_bundle(session_dir="artifacts/session"):
+    p = Path(session_dir)
     if not p.exists(): return None
     scaler = joblib.load(p/"scaler.joblib")
     cfg = json.load(open(p/"config.json"))
@@ -48,11 +50,34 @@ def score_content(bundle, vec):
     return err
 
 def score_session(bundle, vec):
+    """Naive offline scorer: repeats a single line's vector to fill the window
+    (no rolling buffer). Kept for backward-compat / reproducing old numbers.
+    Prefer score_session_stateful for new runs (see --session-mode)."""
     if bundle is None or vec is None: return None
-    # offline evaluator: repeat to window (no rolling buffer). This matches API’s pre-buffer behavior.
     win = bundle["window"]
     Xs = bundle["scaler"].transform(vec.reshape(1,-1))
     seq = np.repeat(Xs, win, axis=0).reshape(1, win, -1)
+    with torch.no_grad():
+        recon, _, _ = bundle["model"](torch.tensor(seq, dtype=torch.float32))
+        err = float(np.mean((seq - recon.numpy())**2))
+    return err
+
+# Backward-compat alias, matches the plan's naming (score_session_naive).
+score_session_naive = score_session
+
+def score_session_stateful(bundle, key, vec, buffers):
+    """Real per-(ip,ua) rolling-buffer scorer, matching src/api/main.py's
+    SESSION_BUFFERS semantics: only scores once a full window of that
+    session's own requests has accumulated (returns None until then)."""
+    if bundle is None or vec is None:
+        return None
+    win = bundle["window"]
+    Xs = bundle["scaler"].transform(vec.reshape(1, -1))[0]
+    buf = buffers.setdefault(key, deque(maxlen=win))
+    buf.append(Xs)
+    if len(buf) < win:
+        return None
+    seq = np.stack(buf, axis=0).reshape(1, win, -1)
     with torch.no_grad():
         recon, _, _ = bundle["model"](torch.tensor(seq, dtype=torch.float32))
         err = float(np.mean((seq - recon.numpy())**2))
@@ -131,7 +156,7 @@ def compute_metrics(y_true, y_score, thr):
     fpr = float(fp / (fp + tn)) if (fp + tn) > 0 else 0.0
     alert_rate = float((y_pred == 1).mean()) if len(y_pred) else 0.0
 
-    return {
+    result = {
         "auc": auc,
         "prauc": prauc,
         "precision": P,
@@ -142,6 +167,8 @@ def compute_metrics(y_true, y_score, thr):
         "threshold": float(thr),
         "alert_rate": alert_rate,
     }
+    result.update(compute_low_alert_metrics(y_true, y_score))
+    return result
 
 def _fmt4(x):
     """Format floats to 4dp; show 'n/a' for None/NaN/Inf."""
@@ -161,26 +188,40 @@ def main():
     ap.add_argument("--outdir", default="artifacts/eval", help="Where to write predictions/metrics")
     ap.add_argument("--fuse-weights", default="0.5,0.5", help="content,session weights for fusion")
     ap.add_argument("--thr-percentile", type=float, default=95.0, help="percentile threshold fallback")
+    ap.add_argument("--session-dir", default="artifacts/session_v2",
+                     help="Where the session-branch model bundle lives. Default is the methodologically-"
+                          "corrected v2 model (real (ip,ua) sessions); pass 'artifacts/session' + "
+                          "--session-mode naive to reproduce legacy v1 numbers.")
+    ap.add_argument("--session-mode", choices=["naive", "stateful"], default="stateful",
+                     help="'stateful' = real per-(ip,ua) rolling buffer (matches training/serving); "
+                          "'naive' = repeat-one-line-to-window (old behavior, for reproducing legacy numbers)")
     args = ap.parse_args()
 
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
     cb = load_content_bundle()
-    sb = load_session_bundle()
+    sb = load_session_bundle(args.session_dir)
     if cb is None and sb is None:
         raise SystemExit("No trained models found under artifacts/. Train first.")
 
     w_content, w_session = [float(x) for x in args.fuse_weights.split(",")]
 
     # Score all lines
+    session_buffers = {}
     lines, s_content, s_session, fused = [], [], [], []
     with open(args.log, encoding="utf-8", errors="ignore") as f:
         for ln in f:
             s = ln.strip()
             if not s: continue
-            vec, _ = line_to_vector(s)
+            vec, meta = line_to_vector(s)
             sc = score_content(cb, vec) if cb else None
-            ss = score_session(sb, vec) if sb else None
+            if sb and args.session_mode == "stateful":
+                key = (meta.get("ip", ""), meta.get("ua", ""))
+                ss = score_session_stateful(sb, key, vec, session_buffers)
+            elif sb:
+                ss = score_session(sb, vec)
+            else:
+                ss = None
             if sc is None and ss is None:
                 continue
             s_content.append(sc if sc is not None else np.nan)
@@ -241,39 +282,8 @@ def main():
     print(f"[OK] wrote {pred_path}")
     print(f"[OK] wrote {mpath}")
     if metrics:
-        for k,v in metrics.items():
-            v = metrics["content"]
-            print("== CONTENT ==")
-            print(
-                "AUC={auc}  PR-AUC={prauc}  F1={f1}  P={p}  R={r}  FPR={fpr}".format(
-                    auc=_fmt4(v["auc"]),
-                    prauc=_fmt4(v.get("prauc") or v.get("pr_auc")),
-                    f1=_fmt4(v["f1"]),
-                    p=_fmt4(v["precision"]),
-                    r=_fmt4(v["recall"]),
-                    fpr=_fmt4(v["fpr"]),
-                )
-            )
-            print(f"TN={v['tn']} FP={v['fp']}  FN={v['fn']} TP={v['tp']}  thr={_fmt4(v['threshold'])}")
-
-            # == SESSION ==
-            v = metrics["session"]
-            print("== SESSION ==")
-            print(
-                "AUC={auc}  PR-AUC={prauc}  F1={f1}  P={p}  R={r}  FPR={fpr}".format(
-                    auc=_fmt4(v["auc"]),
-                    prauc=_fmt4(v.get("prauc") or v.get("pr_auc")),
-                    f1=_fmt4(v["f1"]),
-                    p=_fmt4(v["precision"]),
-                    r=_fmt4(v["recall"]),
-                    fpr=_fmt4(v["fpr"]),
-                )
-            )
-            print(f"TN={v['tn']} FP={v['fp']}  FN={v['fn']} TP={v['tp']}  thr={_fmt4(v['threshold'])}")
-
-            # == FUSED ==
-            v = metrics["fused"]
-            print("== FUSED ==")
+        for k, v in metrics.items():
+            print(f"== {k.upper()} ==")
             print(
                 "AUC={auc}  PR-AUC={prauc}  F1={f1}  P={p}  R={r}  FPR={fpr}".format(
                     auc=_fmt4(v["auc"]),

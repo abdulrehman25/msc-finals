@@ -4,6 +4,7 @@ src/api/__init__.py
 src/api/main.py
 src/featurization/__init__.py
 src/featurization/features.py
+src/featurization/loaders.py
 src/featurization/parse.py
 src/models/__init__.py
 src/models/content_autoencoder.py

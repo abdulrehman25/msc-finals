@@ -12,13 +12,15 @@ def _open_any(path: str):
 def read_vectors_from_log(
     path: str,
     max_lines: Optional[int] = None,
-    bad_out: Optional[str] = None
-) -> Tuple[np.ndarray, int]:
+    bad_out: Optional[str] = None,
+    return_meta: bool = False,
+):
     """
     Reads a log file, converts to feature vectors, skips unparsable lines.
-    Returns: (X, skipped_count)
+    Returns: (X, skipped_count) or, if return_meta=True, (X, skipped_count, metas)
       - X: np.ndarray [n, d]
       - skipped_count: number of lines we ignored
+      - metas: List[dict], one per kept vector (ip/ua/method/path/status/size)
     If bad_out is provided, writes unparsable raw lines to that file.
     """
     import numpy as np
@@ -28,6 +30,7 @@ def read_vectors_from_log(
 
     bad_f = open(bad_out, "w", encoding="utf-8") if bad_out else None
     vecs: List[np.ndarray] = []
+    metas: List[dict] = []
     skipped = 0
     seen = 0
 
@@ -36,12 +39,14 @@ def read_vectors_from_log(
             if not ln.strip():
                 continue
             seen += 1
-            v, _ = line_to_vector(ln)
+            v, m = line_to_vector(ln)
             if v is None:
                 skipped += 1
                 if bad_f: bad_f.write(ln.rstrip("\n") + "\n")
             else:
                 vecs.append(v)
+                if return_meta:
+                    metas.append(m)
             if max_lines and seen >= max_lines:
                 break
 
@@ -52,4 +57,6 @@ def read_vectors_from_log(
         raise SystemExit(f"No usable lines found in {path} (skipped={skipped}).")
 
     X = np.stack(vecs, axis=0)
+    if return_meta:
+        return X, skipped, metas
     return X, skipped
