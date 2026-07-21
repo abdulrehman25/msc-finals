@@ -96,7 +96,22 @@ To address this gap, this work presents a hybrid anomaly detection framework for
 The remainder of this paper is organised as follows. Section~\ref{sec2} sets out the specific contributions of this work. Section~\ref{sec3} reviews related work on anomaly detection for web and log data, content- and behaviour-based deep learning models, and hybrid/fusion-based detection frameworks. Section~\ref{sec4} describes the datasets, preprocessing, feature representation, model architectures, and evaluation protocol. Section~\ref{sec5} presents the experimental results, including the branch ablation, fusion-weight sensitivity, classical-baseline comparison, and cross-dataset threshold-transfer experiments. Section~\ref{sec6} discusses these findings and their practical implications, and Section~\ref{sec7} concludes the paper and outlines directions for future work.
 
 \section{Research Contributions} \label{sec2}
-%TODO: next section to draft.
+
+This paper makes the following contributions.
+
+First, we build a hybrid system that finds anomalies in web server logs using two parts. One part checks each request on its own, using an autoencoder. The other part checks a sequence of requests from the same client, using a variational LSTM. We combine the two scores into one final score, so the system can catch both strange single requests and strange patterns of behaviour over time.
+
+Second, we find and fix a real problem in how the behaviour part was trained. In the old version, the model was trained using a plain sliding window over the whole log. This window did not check which client sent each request, so requests from different clients could end up mixed in the same window. We fix this by grouping requests by client (IP address and user agent) first, so each window only holds requests from one real client. This fix makes a big difference: on the CSIC~2010 dataset, where one client sends many requests in a row, the behaviour part's AUC score rises from about 0.63 to about 0.97 after the fix.
+
+Third, this work reports an honest and useful finding about the data itself. Some of our datasets have only one request per client. In real per-session detection, if a client only sends one request, there is no sequence to check, so the behaviour part gives no score at all for that data. We treat this as a fact about the data, not a failure of the method, and we explain it clearly instead of hiding it. This shows that a true session-based model only helps when the traffic actually has multi-request sessions in it.
+
+Fourth, we test the system on more than one kind of log. We use two Apache-style logs we built ourselves, one Nginx JSON log, and the public CSIC~2010 HTTP dataset. Testing across different log formats and different datasets shows whether the method still works when the data changes shape.
+
+Fifth, we run a cross-dataset test that checks if a threshold set on one dataset still works on another. We set the detection threshold using only the CSIC data, and only its normal, non-attack traffic. Then we use that same threshold, with no change, on three other datasets. The result is surprising: F1 score goes up, not down, when we use the frozen CSIC threshold instead of a threshold tuned on each dataset on its own. For example, on the Access Eval Mix 2000 dataset, the fused F1 score rises from about 0.12 (tuned on that dataset) to about 0.67 (using the frozen CSIC threshold). This happens because these test datasets contain a lot of attack traffic, so a threshold tuned only on them is not a fair "normal traffic" threshold. This is a useful, real finding about how to set thresholds in practice.
+
+Sixth, we compare our system with simple baseline methods: Random Forest, which uses attack labels during training, and Isolation Forest and One-Class SVM, which do not use labels, like our own method. We also measure how fast the system runs. On average, scoring one request takes about 0.14~ms for the content part and about 0.08~ms for the behaviour part when done one request at a time, and scoring in batches is much faster, at about 630{,}000 lines per second. This shows the system could run in near real time.
+
+Together, these results show that a two-part fusion system can work well across different kinds of web log data, and that fixing how sessions are built and how thresholds are set can matter as much as the choice of model itself.
 
 \section{Related Work} \label{sec3}
 %TODO: next section to draft.
