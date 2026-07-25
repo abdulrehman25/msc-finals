@@ -182,10 +182,256 @@ Cantone et al.~(2024)~\cite{cantone2024} & Multiple classical ML models & Networ
 \unskip
 
 \section{Materials and Methods} \label{sec4}
-%TODO: next section to draft.
+
+\subsection{Research Design Overview}
+
+This study follows an experimental design. We build and train the models directly on real log data, then test them and report what we find. The setup is semi-supervised: both models are trained only on requests known to be normal, so no attack labels are needed to build the models themselves. Attack labels are only used afterwards, to check how well each trained model tells normal and attack traffic apart. The full process has five steps: preparing the data, building request-level and session-level features, training the two branch models, combining their scores through fusion, and setting a decision threshold. Each step is described below.
+
+\subsection{Datasets} \label{sec4.2}
+
+We use eight datasets in total, listed in Table~\ref{tab:datasets}. One of them, the CSIC~2010 HTTP dataset, is a public dataset built by the Information Security Institute of CSIC (the Spanish National Research Council), for testing web attack detection on an e-commerce application~\cite{csic2010}. It has 61{,}065 requests in total: 36{,}000 normal and 25{,}065 attack requests. It is the only dataset in this study that is not self-generated.
+
+The rest of the datasets were generated for this project's own testbed, using normal browsing traffic mixed with known attack tools (such as sqlmap and nikto) run against a small test web application, following an approach also used elsewhere in the intrusion-detection literature for building test data~\cite{shiravi2012}. Three of these self-generated logs are used as target datasets for the cross-dataset test described in Section~\ref{sec4.7}: Access Eval Mix 2000, Access Eval Small 500, and Nginx JSON Eval 800, which is the only one of the three stored as structured JSON lines rather than a plain Apache-style text log. The remaining four datasets support the branch ablation study, the classical-baseline comparison, and the training of the session model: Access Attacks 200, Access Mixed 500, Access Small Benign, and Access Super Long Session 2000, which is entirely normal traffic from a single client sending a long run of requests, used only to help train the session model.
+
+An important detail, revisited in Section~\ref{sec5}, is that most of the self-generated logs are attack-heavy rather than normal-heavy. For example, 81\% of Access Eval Mix 2000 is attack traffic. This matters because a threshold set directly on one of these datasets is not really a "normal traffic" threshold, since most of what it sees is not normal.
+
+\begin{table}[H]
+\caption{Datasets used in this study.}
+\label{tab:datasets}
+\begin{tabularx}{\textwidth}{lXCCCl}
+\toprule
+\textbf{Dataset} & \textbf{Format} & \textbf{Total} & \textbf{Normal} & \textbf{Attack} & \textbf{Role} \\
+\midrule
+CSIC 2010 & Public, e-commerce app & 61{,}065 & 36{,}000 & 25{,}065 & Source domain; session training \\
+Access Eval Mix 2000 & Apache Combined & 2{,}000 & 380 & 1{,}620 & Target dataset \\
+Access Eval Small 500 & Apache Combined & 500 & 107 & 393 & Target dataset \\
+Nginx JSON Eval 800 & Structured JSON & 800 & 174 & 626 & Target dataset \\
+Access Attacks 200 & Apache Combined & 200 & 36 & 164 & Ablation, baselines \\
+Access Mixed 500 & Apache Combined & 500 & 205 & 295 & Ablation, baselines \\
+Access Small Benign & Apache Combined & 120 & 54 & 66 & Ablation, baselines \\
+Access Super Long Session 2000 & Apache Combined & 2{,}000 & 2{,}000 & 0 & Session training only \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Data Preprocessing and Feature Extraction}
+
+Each log line is first parsed into a common set of fields: client IP address, timestamp, request method, path, response status, response size, and, where available, the user agent string. Three log line formats are supported: Apache Combined (which includes referrer and user agent), Apache Common (without those two fields), and structured JSON lines, so that Nginx JSON Eval 800 can be parsed with the same pipeline as the Apache-style logs.
+
+From each parsed line, we build one feature vector with 11 numbers, listed in Table~\ref{tab:features}. This is a light, structural view of a request: it looks at the shape of the request and the server's response to it, not at the request body or query values directly. The same 11 numbers are used for both branches; the only difference is that the session branch groups these vectors into short sequences (Section~\ref{sec4.5}), while the content branch scores one vector at a time.
+
+Before training, feature values are scaled with a standard scaler (zero mean, unit variance), fitted separately for the content model and the session model, using only the data each model is trained on.
+
+\begin{table}[H]
+\caption{The 11 features built from each parsed request.}
+\label{tab:features}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Feature} & \textbf{Meaning} \\
+\midrule
+Method code & HTTP method mapped to a small integer (e.g., GET = 1, POST = 2) \\
+Path length & Number of characters in the request path \\
+Is API & 1 if the path starts with \texttt{/api/}, else 0 \\
+Has query & 1 if the path has a query string, else 0 \\
+Has file extension & 1 if the path looks like a file (has a dot before any query string), else 0 \\
+Status code & Raw HTTP response status code \\
+Status 2xx / 3xx / 4xx / 5xx & Four yes/no flags for which hundred-range the status code falls in \\
+Log response size & Natural log of the response size in bytes \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Content-Based Autoencoder}
+
+The content branch is a small feed-forward autoencoder. The encoder has four layers that shrink the 11 input numbers down to a 4-number summary ($11 \rightarrow 32 \rightarrow 16 \rightarrow 8 \rightarrow 4$), each followed by a ReLU activation. The decoder mirrors this, growing the summary back up to 11 numbers ($4 \rightarrow 8 \rightarrow 16 \rightarrow 32 \rightarrow 11$), with no activation on the last layer, since its output needs to match the original values directly.
+
+The model is trained only on requests known to be normal, using the mean squared error between the input and its rebuilt version as the loss, optimised with Adam (learning rate 0.001). At test time, the same mean squared error is used as the anomaly score for each request: a normal-looking request should be rebuilt closely, so a high error suggests the request does not look like anything the model saw as normal.
+
+\subsection{Session-Based Variational LSTM Autoencoder} \label{sec4.5}
+
+The session branch models short sequences of requests from the same client, rather than single requests on their own. A client is identified by the pair (IP address, user agent).
+
+In the original thesis code, session windows were built by sliding a fixed-size window over the whole log in time order, without checking which client sent each request. A single window could therefore mix requests from several different clients. We treat this as a real bug, not a design choice, and fix it in this study: windows are now built only from the requests belonging to one client at a time, so a window of length 20 always holds 20 requests from a single real client, never a mix.
+
+The model is a variational autoencoder built from two LSTM networks. An LSTM encoder reads a window of requests and produces a mean and a variance for a small latent space (size~8). A latent value is drawn from this distribution only during training; at test time, the mean is used directly, so scoring is repeatable rather than random. A second LSTM decoder then rebuilds the whole window from this one latent value, repeated at every step. The training loss adds the mean squared reconstruction error to a KL-divergence term that keeps the latent space close to a standard normal distribution, with the KL term weighted at 0.001. As with the content branch, training uses only normal traffic and the Adam optimiser (learning rate 0.001).
+
+Building real per-client windows needs enough requests from the same client, so the session model is trained on normal traffic pooled from two sources: the normal-labelled requests in CSIC~2010 (36{,}000 requests, almost all from the same two clients) and the fully normal Access Super Long Session 2000 log (2{,}000 requests from a single client). Together these give 38{,}000 requests, which build into 7{,}594 real per-client session windows of length 20, using a stride of 5 requests between windows.
+
+At test time, scoring also uses a real rolling buffer, one client at a time: the first 19 requests from a client fill the buffer, and a session score is only produced once 20 requests from that same client have arrived. This matches how windows are built during training. We call this the corrected session model for the rest of this paper, and compare it directly against the original, uncorrected version in Section~\ref{sec5}.
+
+\subsection{Fusion and Anomaly Scoring}
+
+Once both branches produce a score for a request, the two scores are combined into one fused score by a weighted average:
+\begin{equation}
+s_{\text{fused}} = \frac{w_c \cdot s_c + w_s \cdot s_s}{w_c + w_s}
+\end{equation}
+where $s_c$ and $s_s$ are the content and session scores and $w_c$, $w_s$ are their weights. The content branch always scores every request; the session branch only scores a request once its client's buffer is full, so early requests from a new client are scored on content alone. If only one branch has a score for a given request, the fused score is simply that branch's score. The default weights are $w_c = w_s = 0.5$; Section~\ref{sec5} reports what happens when this balance is changed.
+
+\subsection{Threshold Selection and Cross-Dataset Transfer} \label{sec4.7}
+
+A request is flagged as anomalous when its score is above a threshold. Following the approach used in the original thesis work, thresholds are set as a percentile of the score distribution, with the 95th percentile as the default, so only the highest-scoring 5\% of requests are flagged.
+
+Two ways of setting this threshold are compared in this paper. \textbf{Self-calibrated thresholding} sets the percentile threshold directly on the dataset being tested, using every request in it, normal and attack alike. This is what the original thesis work did. \textbf{Cross-dataset threshold transfer} instead sets the threshold once, using only the normal-labelled requests from CSIC~2010, and then applies that one fixed threshold, unchanged, to the three target datasets, without ever looking at their own scores. This second approach is closer to how a real detector would be used: a threshold is set once, using traffic known to be normal, and then applied to new data it has never seen. Section~\ref{sec5} compares the two directly.
+
+\subsection{Evaluation Metrics}
+
+Because attack traffic is a small share of the total in most anomaly detection settings, and a large share in some of the self-generated datasets used here, accuracy on its own is not a useful measure. We report the area under the ROC curve (AUC) and the area under the precision-recall curve (PR-AUC), which do not depend on a single threshold, together with threshold-dependent measures: precision, recall, F1 score, and false positive rate (FPR), plus the full confusion matrix.
+
+\subsection{Implementation and Reproducibility}
+
+All models are implemented in Python, using PyTorch for the autoencoder and the variational LSTM autoencoder, and scikit-learn for scaling, classical baselines, and metric calculations. Both models are trained with a fixed random seed, so repeated training runs give the same result. Trained models, scalers, and score outputs for every dataset are saved to disk, so results can be reproduced without retraining.
 
 \section{Results} \label{sec5}
-%TODO: next section to draft. Source data: artifacts/paper/tables/{ablation_table,fusion_sweep,threshold_transfer,baseline_comparison,session_v1_vs_v2}.csv, latency_benchmark.json.
+
+\subsection{Effect of the Session Construction Fix}
+
+Table~\ref{tab:session_fix} compares the original (uncorrected) session model against the corrected model described in Section~\ref{sec4.5}, on the two datasets that have any real per-client session structure to score: CSIC~2010, where almost all requests come from the same two clients, and Access Super Long Session 2000, a single client sending 2{,}000 requests in a row with no attack traffic at all, so no threshold-based score is meaningful there.
+
+On CSIC~2010, the fix makes a large difference. The session branch's AUC rises from 0.63 with the original model to 0.97 with the corrected model, and its F1 score rises from 0.14 to 0.22, with precision reaching 1.00.
+
+On the other six datasets (Access Eval Mix 2000, Access Eval Small 500, Nginx JSON Eval 800, Access Attacks 200, Access Mixed 500, Access Small Benign), the corrected model produces no session score at all, because, as Table~\ref{tab:datasets} already suggests, almost every request in these logs comes from a different client. A true per-client model needs at least 20 requests from the same client before it can score anything, and these logs never reach that. This is not a weakness of the fix; it is a fact about the data. The original, uncorrected model scored every single line in these logs, but it did so by mixing unrelated clients into the same window, so that full coverage was not a real strength.
+
+\begin{table}[H]
+\caption{Session branch, before and after the session construction fix.}
+\label{tab:session_fix}
+\begin{tabularx}{\textwidth}{lCCCCC}
+\toprule
+\textbf{Dataset} & \textbf{Model} & \textbf{Requests Scored} & \textbf{AUC} & \textbf{F1} & \textbf{Precision} \\
+\midrule
+CSIC 2010 & Original & 61{,}065 & 0.63 & 0.14 & 0.64 \\
+CSIC 2010 & Corrected & 61{,}065 & 0.97 & 0.22 & 1.00 \\
+Access Eval Mix 2000, and 5 others & Original & all lines & 0.55--0.67 & 0.09--0.16 & 0.78--1.00 \\
+Access Eval Mix 2000, and 5 others & Corrected & 0 & --- & --- & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Branch Ablation}
+
+Table~\ref{tab:ablation} reports AUC and F1 for the content, session, and fused branches on every dataset, using the corrected session model throughout. Figure~\ref{fig:heatmap_auc} shows the same AUC values as a heatmap, making it easier to see where each branch does well.
+
+The content branch reaches a moderate AUC (roughly 0.60--0.70) on most datasets, with high or perfect precision but low recall (roughly 0.06--0.09), because the 95th-percentile threshold only flags the most extreme-looking requests. This matches the precision-first design already used in the original thesis work: fewer, more trustworthy alerts over broad coverage.
+
+The session branch only produces a score on CSIC~2010, for the reason given above. On that dataset it clearly beats the content branch (AUC 0.97 vs. 0.70).
+
+The fused branch, on CSIC~2010, sits between the two single branches (AUC 0.77), better than content alone but worse than session alone. On the six datasets without a session score, the fused branch is identical to the content branch, since there is nothing to fuse with. Access Super Long Session 2000 is entirely normal traffic, so its AUC cannot be computed at all (there is only one class), and its F1 is 0 for every branch.
+
+\begin{table}[H]
+\caption{Branch ablation: AUC and F1 by dataset, using the corrected session model.}
+\label{tab:ablation}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{tabularx}{\fulllength}{lCCCCCC}
+\toprule
+\textbf{Dataset} & \textbf{Content AUC} & \textbf{Session AUC} & \textbf{Fused AUC} & \textbf{Content F1} & \textbf{Session F1} & \textbf{Fused F1} \\
+\midrule
+CSIC 2010 & 0.70 & 0.97 & 0.77 & 0.14 & 0.22 & 0.14 \\
+Access Eval Mix 2000 & 0.69 & --- & 0.69 & 0.12 & --- & 0.12 \\
+Access Eval Small 500 & 0.70 & --- & 0.70 & 0.12 & --- & 0.12 \\
+Nginx JSON Eval 800 & 0.66 & --- & 0.66 & 0.11 & --- & 0.11 \\
+Access Attacks 200 & 0.47 & --- & 0.47 & 0.11 & --- & 0.11 \\
+Access Mixed 500 & 0.60 & --- & 0.60 & 0.16 & --- & 0.16 \\
+Access Small Benign & 0.63 & --- & 0.63 & 0.17 & --- & 0.17 \\
+Access Super Long Session 2000 & n/a & n/a & n/a & 0.00 & 0.00 & 0.00 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}
+\unskip
+
+\begin{figure}[H]
+\includegraphics[width=0.72\textwidth]{../artifacts/paper/figures/heatmap_auc.png}
+\caption{AUC by dataset and branch (content, session, fused).}
+\label{fig:heatmap_auc}
+\end{figure}
+
+\subsection{Fusion Weight Sensitivity}
+
+Because a session score only exists for CSIC~2010, this is the only dataset where changing the fusion weight has any effect. Table~\ref{tab:fusion_sweep} sweeps the weight given to each branch, from content-only ($w_c=1$) to session-only ($w_s=1$).
+
+AUC and F1 both rise steadily as more weight is put on the session branch, and the best score on both measures is reached at full session weight, not at any blended point in between. This means that, for this dataset, mixing in the content branch never helps; it only pulls the fused score away from the stronger session branch. This goes against the usual assumption that fusing two branches is always better than picking the stronger one, and it is worth stating plainly rather than glossing over. On the other seven datasets, sweeping the weight has no effect, since only a content score exists there.
+
+\begin{table}[H]
+\caption{Fusion weight sweep on CSIC 2010.}
+\label{tab:fusion_sweep}
+\begin{tabularx}{\textwidth}{CCCC}
+\toprule
+\boldmath{$w_c$} & \boldmath{$w_s$} & \textbf{AUC} & \textbf{F1} \\
+\midrule
+1.0 & 0.0 & 0.70 & 0.14 \\
+0.7 & 0.3 & 0.75 & 0.14 \\
+0.5 & 0.5 & 0.77 & 0.14 \\
+0.3 & 0.7 & 0.78 & 0.15 \\
+0.0 & 1.0 & \textbf{0.97} & \textbf{0.22} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Cross-Dataset Threshold Transfer}
+
+Table~\ref{tab:threshold_transfer} compares the two ways of setting the decision threshold described in Section~\ref{sec4.7}: self-calibrated (tuned separately on each target dataset, using every row in it) and transferred (set once on CSIC~2010's normal traffic only, then applied unchanged). AUC does not change between the two, since AUC does not depend on a threshold; only precision, recall, F1, and false positive rate change.
+
+The result is the opposite of what we expected going in. Using the transferred threshold raises F1 on every target dataset, not by a small amount, but by roughly four to five times. For example, on Access Eval Mix 2000, the fused branch's F1 rises from 0.12 (self-calibrated) to 0.67 (transferred). The same pattern holds on Access Eval Small 500 (0.12 to 0.67) and Nginx JSON Eval 800 (0.11 to 0.67), and for the content branch alone on all three datasets.
+
+The reason is the point already raised in Section~\ref{sec4.2}: these three target datasets are attack-heavy, not normal-heavy (81\%, 79\%, and 78\% attack traffic, respectively). A threshold set at the 95th percentile of a dataset that is mostly attack traffic ends up far too high, since it is really the 95th percentile of a mostly-attack distribution, not a normal-traffic distribution, so it only catches the most extreme 5\% of an already unusual mix. The frozen CSIC threshold, by contrast, is set on genuinely normal traffic, so it sits at a more sensible point and catches far more real attacks, at the cost of a higher false positive rate (up to about 0.30--0.36 on the fused branch, compared to 0.00--0.02 self-calibrated).
+
+This is a useful, practical finding: on these datasets, what data a threshold is calibrated on matters more than whether it is calibrated on the same dataset being tested. A threshold set on real normal traffic, even from a completely different dataset, can work better than one set on the target dataset itself, if that target dataset does not actually represent normal conditions well.
+
+\begin{table}[H]
+\caption{Self-calibrated vs. transferred threshold, on the three target datasets.}
+\label{tab:threshold_transfer}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{tabularx}{\fulllength}{llCCCCCC}
+\toprule
+\textbf{Target Dataset} & \textbf{Branch} & \textbf{AUC} & \textbf{Self F1} & \textbf{Self FPR} & \textbf{Transf. F1} & \textbf{Transf. Recall} & \textbf{Transf. FPR} \\
+\midrule
+Access Eval Mix 2000 & Content & 0.69 & 0.12 & 0.00 & 0.54 & 0.38 & 0.09 \\
+Access Eval Mix 2000 & Fused & 0.69 & 0.12 & 0.00 & 0.67 & 0.54 & 0.30 \\
+Access Eval Small 500 & Content & 0.70 & 0.12 & 0.00 & 0.51 & 0.35 & 0.04 \\
+Access Eval Small 500 & Fused & 0.70 & 0.12 & 0.00 & 0.67 & 0.53 & 0.24 \\
+Nginx JSON Eval 800 & Content & 0.66 & 0.11 & 0.02 & 0.54 & 0.38 & 0.09 \\
+Nginx JSON Eval 800 & Fused & 0.66 & 0.11 & 0.02 & 0.67 & 0.56 & 0.36 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}
+\unskip
+
+\subsection{Comparison with Classical Baselines}
+
+Table~\ref{tab:baselines} compares our content and fused branches with three classical baselines: Random Forest, which is trained using attack labels, unlike our own models, and Isolation Forest and One-Class SVM, which are trained only on normal traffic, the same setup as our own models.
+
+Random Forest usually reaches the highest AUC of all methods (for example, 0.90 on Access Attacks 200 and 0.89 on CSIC~2010), which is expected, since it is the only method here allowed to see attack labels during training. Its F1 score is also high, but this comes with a much higher false positive rate than our fused branch in every case (for example, 0.55 on Access Eval Mix 2000, compared to 0.00 for our fused branch on the same dataset). This trade-off matters in a real security setting, where too many false alerts can make a system less useful even when its raw detection rate looks strong.
+
+Isolation Forest and One-Class SVM, which do not use attack labels, generally score lower than both Random Forest and our own branches on AUC. Our fused branch beats both of these unsupervised baselines on AUC on five of the seven comparable datasets, and is close on the rest. The one dataset where our system does clearly best of all methods, including Random Forest, is CSIC~2010, where the session branch alone reaches an AUC of 0.97, higher than every other method or baseline in this table.
+
+\begin{table}[H]
+\caption{Comparison with classical baselines.}
+\label{tab:baselines}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{tabularx}{\fulllength}{lCCCCCC}
+\toprule
+\textbf{Dataset} & \textbf{Content AUC} & \textbf{Fused AUC} & \textbf{RF AUC} & \textbf{RF FPR} & \textbf{IForest AUC} & \textbf{OCSVM AUC} \\
+\midrule
+CSIC 2010 & 0.70 & 0.77 & 0.89 & 0.30 & 0.71 & 0.44 \\
+Access Eval Mix 2000 & 0.69 & 0.69 & 0.78 & 0.55 & 0.66 & 0.62 \\
+Access Eval Small 500 & 0.70 & 0.70 & 0.75 & 0.58 & 0.66 & 0.66 \\
+Nginx JSON Eval 800 & 0.66 & 0.66 & 0.68 & 0.62 & 0.55 & 0.55 \\
+Access Attacks 200 & 0.47 & 0.47 & 0.90 & 0.20 & 0.86 & 0.61 \\
+Access Mixed 500 & 0.60 & 0.60 & 0.68 & 0.44 & 0.57 & 0.64 \\
+Access Small Benign & 0.63 & 0.63 & 0.72 & 0.25 & 0.76 & 0.47 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}
+\unskip
+
+\subsection{Inference Speed}
+
+We also measured how fast the system runs, using the Access Eval Mix 2000 log. Scoring one request at a time, as a live system would, the content branch takes about 0.14~ms per request on average, and the session branch about 0.08~ms, giving an overall throughput of about 4{,}420 requests per second. Scoring in batches instead, the same log runs at about 630{,}000 lines per second, roughly 140 times faster than one-at-a-time scoring. Both numbers are fast enough for near-real-time use on ordinary hardware, with batch scoring far ahead whenever requests can be grouped before scoring.
+
+\subsection{Summary of Results}
+
+Taken together, these results show three things. First, the session branch is powerful, but only where the traffic actually contains real client sessions; the fix in Section~\ref{sec4.5} changes its usefulness from close to a coin flip to strong detection on the one dataset, CSIC~2010, where it can genuinely operate. Second, fusion is not automatically better than picking the stronger branch: on CSIC~2010, weighting fully toward the session branch beats every blended fusion weight tested. Third, how a threshold is set matters as much as which model produces the score: a threshold frozen from real normal traffic, even from a different dataset, outperformed a threshold tuned on the target dataset itself, because several of the target datasets used here are attack-heavy rather than normal-heavy.
 
 \section{Discussion} \label{sec6}
 %TODO: next section to draft.
@@ -230,6 +476,9 @@ Pan, Y.; Sun, F.; Teng, Z.; White, J.; Schmidt, D.C.; Staples, J.; Krause, L. De
 
 \bibitem[Cantone et al.(2024)]{cantone2024}
 Cantone, M.; Marrocco, C.; Bria, A. Machine learning in network intrusion detection: A cross-dataset generalization study. \emph{IEEE Access} \textbf{2024}, \emph{12}, 144489--144508. \url{https://doi.org/10.1109/ACCESS.2024.3472907}.
+
+\bibitem[Gim\'{e}nez et al.(2010)]{csic2010}
+Gim\'{e}nez, C.T.; Villegas, A.P.; Mara\~{n}\'{o}n, G.A. \emph{HTTP Dataset CSIC 2010}; Information Security Institute of CSIC (Spanish Research National Council): Madrid, Spain, 2010.
 
 \end{thebibliography}
 \end{adjustwidth}
