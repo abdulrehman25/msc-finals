@@ -1,6 +1,6 @@
 # Fdb version 4
-["lualatex"] 1784647368.82166 "/Users/abdul/projects/personal/msc-finals/paper/weblog_anomaly_paper.tex" "weblog_anomaly_paper.pdf" "weblog_anomaly_paper" 1784647369.30247 2
-  "/Users/abdul/projects/personal/msc-finals/paper/weblog_anomaly_paper.tex" 1784641106.09189 26675 1c107460c94248c6721d0c27979d9e65 ""
+["lualatex"] 1784979069.21003 "/Users/abdul/projects/personal/msc-finals/paper/weblog_anomaly_paper.tex" "weblog_anomaly_paper.pdf" "weblog_anomaly_paper" 1784979069.66341 2
+  "/Users/abdul/projects/personal/msc-finals/paper/weblog_anomaly_paper.tex" 1784737607.01677 50834 4744c55581bba2ae5b94014d7641713a ""
   "/usr/local/texlive/2026/texmf-dist/tex/generic/unicode-data/CaseFolding.txt" 1758919076 87539 6b7075ab2647623eab0e52d7dfa4ffbb ""
   "/usr/local/texlive/2026/texmf-dist/tex/generic/unicode-data/PropList.txt" 1758919076 145465 d1c4ecf7da205e937fd56b7a5bb2e6d6 ""
   "/usr/local/texlive/2026/texmf-dist/tex/generic/unicode-data/ScriptExtensions.txt" 1758919076 20707 e746270daafaa94f2d5d1a9b0a3e442d ""
@@ -57,8 +57,8 @@
   "/usr/local/texlive/2026/texmf-dist/tex/luatex/luaotfload/luaotfload.lua" 1740687098 13566 16df94dd2de231b2bca0aaa0190941fe ""
   "/usr/local/texlive/2026/texmf-var/web2c/luahbtex/lualatex.fmt" 1784591394 5655280 c58303b7439fd0729ef7589722f79efc ""
   "Definitions/mdpi.cls" 0 -1 0 ""
-  "weblog_anomaly_paper.aux" 0 -1 0 "lualatex"
-  "weblog_anomaly_paper.tex" 1784641106.09189 26675 1c107460c94248c6721d0c27979d9e65 ""
+  "weblog_anomaly_paper.aux" 1784979061.20903 32 3985256e7290058c681f74d7a3565a19 "lualatex"
+  "weblog_anomaly_paper.tex" 1784737607.01677 50834 4744c55581bba2ae5b94014d7641713a ""
   (generated)
   "weblog_anomaly_paper.aux"
   "weblog_anomaly_paper.log"
