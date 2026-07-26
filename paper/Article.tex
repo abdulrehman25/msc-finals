@@ -48,42 +48,32 @@
 % [method B]" pattern.
 \Title{Content- and Session-Aware Anomaly Detection for Web Server Logs Using a Fused Autoencoder and Variational LSTM Framework: A Cross-Dataset Evaluation}
 
-% AUTHOR BLOCK -- DRAFT. Matches the peer paper's author-role pattern
-% (student first/corresponding author, supervisor + moderator as
-% co-authors). NOTE: the moderator's name is spelled inconsistently
-% across source documents ("Muhsin Husseinu" on the thesis title page,
-% "Muhsin Hussenu" in the thesis body/acknowledgements, "Muhsin
-% Hassanu" in the peer paper) -- needs to be confirmed with the
-% moderator directly before submission, not guessed.
+% AUTHOR BLOCK. Matches the peer paper's author-role pattern (student
+% first/corresponding author, supervisor + moderator as co-authors).
+% Moderator's name confirmed as "Muhsin Hussenu" (thesis body/
+% acknowledgements spelling), resolving the inconsistency against
+% "Muhsin Husseinu" (thesis title page) and "Muhsin Hassanu" (peer paper).
 \Author{Abdul Rehman *, Raja Ujjan and Muhsin Hussenu *}
 
 \AuthorNames{Abdul Rehman, Raja Ujjan, and Muhsin Hussenu}
 
 \address[1]{Department of Computing and Cybersecurity, University of the West of Scotland, London Campus, London E14 2BA, UK}
 
-\corres{Correspondence: [student email TBD] (A.R.)}
+\corres{Correspondence: abubakar484847@gmail.com (A.R.)}
 
-\abstract{%TODO: write after Results/Discussion are finalized, so the
-reported numbers are locked. Draft note: should mirror the peer
-paper's abstract shape -- motivation, gap, framework summary,
-datasets, headline quantitative results, one-sentence takeaway.
-Numbers to pull from once ready: artifacts/paper/tables/ablation_table.csv,
-fusion_sweep.csv, threshold_transfer.csv, baseline_comparison.csv,
-latency_benchmark.json, session_v1_vs_v2.csv (source of truth --
-not the original thesis Table 5.6 figures, several of which this
-re-run diverges from).}
+\abstract{Web server logs are one of the richest sources of security-relevant information available to defenders, but signature- and rule-based inspection cannot catch attacks that do not match a known pattern, and most existing anomaly-detection studies are validated on a single dataset, log format, and traffic mix, which risks overstating how well a method will generalise once deployed. This paper presents a hybrid anomaly detection framework for web server logs that fuses a content-based autoencoder, which scores individual HTTP requests on their structural features, with a session-based variational LSTM autoencoder, which scores genuine per-client request sequences rather than an arbitrary sliding window over the raw log stream. The framework is evaluated across eight datasets spanning three log formats -- self-generated Apache-style logs, a structured Nginx JSON log, and the public CSIC~2010 HTTP dataset -- under both within-dataset and cross-dataset threshold-transfer protocols. Correcting a session-construction fault that let windows mix requests from different clients raises the session branch's AUC on CSIC~2010 from 0.63 to 0.97, but the branch produces no score at all on datasets where clients rarely issue more than one or two requests, showing that its benefit is conditional on genuine session structure being present in the traffic. Fusing the two branches is not uniformly beneficial: on CSIC~2010, weighting fully toward the session branch outperforms every blended fusion weight tested. A decision threshold calibrated once on normal CSIC~2010 traffic and transferred unchanged to three attack-heavy target datasets raises fused F1 by roughly four to five times over a threshold tuned on each target dataset directly (for example, 0.12 to 0.67 on Access Eval Mix 2000), because those target datasets contain too much attack traffic to yield a meaningful self-calibrated, normal-traffic threshold. The framework also achieves a substantially lower false positive rate than a labelled Random Forest baseline at comparable or better AUC than unsupervised Isolation Forest and One-Class SVM baselines, and it processes requests fast enough for near-real-time use, at about 630{,}000 lines per second in batch mode. These results indicate that how session structure and detection thresholds are built and calibrated can matter as much as the choice of underlying model.}
 
 \keyword{web server logs; anomaly detection; autoencoder; variational LSTM; session modelling; score fusion; cross-dataset generalisation}
 
 \begin{document}
 
-\section{Introduction}
+\section{Introduction} \label{sec1}
 
 Web applications underpin most critical digital services in use today, from banking and healthcare to e-commerce and cloud infrastructure, and their continuous, public-facing exposure makes them a persistent target for attackers~\cite{scarfone2007}. Every request a web server processes is recorded in an access log, together with metadata such as the request method, path, response status, and client identifiers. These logs are one of the richest available sources of security-relevant information: in principle, they capture both the legitimate use of an application and the traces left by attackers probing or exploiting it. In practice, however, the volume and variety of this data make manual inspection infeasible for any application of meaningful scale, and organisations have long relied on signature-based intrusion detection and rule-based filtering to triage it~\cite{scarfone2007}.
 
 Signature- and rule-based approaches are effective against known attack patterns but are structurally unable to detect zero-day or previously unseen attacks, since they can only recognise what has already been catalogued. This has motivated a shift towards anomaly detection, which instead models what \emph{normal} traffic looks like and flags deviations from it, without requiring the deviation to match a predefined signature~\cite{chandola2009}. Anomaly detection is a natural fit for web security because it does not depend on a labelled corpus of known attacks -- which is difficult to obtain, quickly goes stale, and can never be assumed complete -- but it introduces its own difficulties. Web traffic is highly non-stationary: normal behaviour drifts as applications change, and it can vary enormously between different endpoints, user populations, and even times of day. Attack traffic is also typically a tiny fraction of the total volume, so any evaluation of an anomaly detector must be designed around severe class imbalance rather than raw accuracy~\cite{chandola2009}.
 
-Deep learning has extended anomaly detection to log and web-traffic data by learning representations directly from raw or lightly processed records, rather than requiring hand-engineered features. Sequence models such as LSTMs have been used to learn the normal structure of a stream of log events and flag deviations from it~\cite{nedelkoski2020}, and DeepLog demonstrated that treating a system log as a natural-language-like sequence allows an LSTM to learn normal execution patterns and detect anomalies as departures from them~\cite{du2017}. Applied to HTTP traffic specifically, this behavioural, sequence-oriented view is complementary to a second, request-level view: individual HTTP requests can themselves be modelled directly, using an autoencoder trained to reconstruct the structural and payload characteristics of normal requests, so that unusually large reconstruction error flags anomalous content such as injection payloads or malformed parameters. Recent work combining a variational LSTM autoencoder with a deviation network for exactly this purpose has shown that this class of model is well suited to detecting web attacks directly from HTTP weblogs~\cite{jagat2024}.
+Deep learning has extended anomaly detection to log and web-traffic data by learning representations directly from raw or lightly processed records, rather than requiring hand-engineered features. Sequence models such as LSTMs~\cite{hochreiter1997} have been used to learn the normal structure of a stream of log events and flag deviations from it~\cite{nedelkoski2020}, and DeepLog demonstrated that treating a system log as a natural-language-like sequence allows an LSTM to learn normal execution patterns and detect anomalies as departures from them~\cite{du2017}. Applied to HTTP traffic specifically, this behavioural, sequence-oriented view is complementary to a second, request-level view: individual HTTP requests can themselves be modelled directly, using an autoencoder trained to reconstruct the structural and payload characteristics of normal requests, so that unusually large reconstruction error flags anomalous content such as injection payloads or malformed parameters. Recent work combining a variational LSTM autoencoder~\cite{kingma2014,ancho2015} with a deviation network for exactly this purpose has shown that this class of model is well suited to detecting web attacks directly from HTTP weblogs~\cite{jagat2024}.
 
 These two views, however, are not interchangeable. A content-based model that scores individual requests in isolation cannot see attacks that only become apparent across a sequence of otherwise unremarkable requests -- reconnaissance-style scanning, credential stuffing, or low-and-slow probing, for example, where each individual request may be syntactically valid. A behaviour-based model that scores sequences of requests grouped by client can catch exactly this class of attack, but it depends on there being a genuine sequence to model in the first place: if a client only issues one or two requests, or if requests from a given client cannot be reliably grouped together, there is no behavioural signal to learn from. This dependency on session structure is not merely a theoretical caveat -- as this study's own experiments later show (Section~\ref{sec5}), it materially determines whether a session-based branch can contribute anything at all for a given traffic sample.
 
@@ -121,15 +111,15 @@ Web server logs record every request a server handles. Each line usually has the
 
 \subsection{Classical Machine Learning Methods}
 
-Before deep learning became common, many studies used classic machine learning methods for this problem. Isolation Forest is one of the most used. It works by randomly splitting the data again and again; points that get cut off quickly, after only a few splits, are treated as anomalies~\cite{liu2008}. This method does not need labelled attack data, runs fast, and is simple to set up, which is why it is still used today. For example, one recent study applied Isolation Forest directly to web traffic logs from an e-commerce site and showed it can tell normal and anomalous requests apart without needing attack labels~\cite{chua2024}. Other classic methods, such as clustering and one-class classifiers, have also been used, but they often need features to be picked and built by hand, and they can struggle when the traffic pattern changes.
+Before deep learning became common, many studies used classic machine learning methods for this problem. Isolation Forest is one of the most used. It works by randomly splitting the data again and again; points that get cut off quickly, after only a few splits, are treated as anomalies~\cite{liu2008}. This method does not need labelled attack data, runs fast, and is simple to set up, which is why it is still used today. For example, one recent study applied Isolation Forest directly to web traffic logs from an e-commerce site and showed it can tell normal and anomalous requests apart without needing attack labels~\cite{chua2024}. One-Class SVM is another classic unsupervised method, learning a boundary around normal data in feature space and flagging anything that falls outside it~\cite{scholkopf2001}; like Isolation Forest, it needs no attack labels, which is why both are used as unsupervised baselines later in this paper (Section~\ref{sec5}). Where attack labels are available, Random Forest~\cite{breiman2001}, an ensemble of decision trees, remains a strong and widely used supervised baseline and is included here for the same reason. All three of these classical methods, however, typically need features to be picked and built by hand, and they can struggle when the traffic pattern changes.
 
 \subsection{Content-Based Deep Learning}
 
-Deep learning removes the need for hand-built features by learning directly from the raw or lightly processed request data. One common approach is the autoencoder. An autoencoder learns to compress a normal request into a small representation and then rebuild it. If the model is trained only on normal requests, it becomes good at rebuilding normal requests but bad at rebuilding attack requests, so a request with a high rebuild error can be flagged as an anomaly. One study used this idea end to end, training a deep autoencoder directly on HTTP requests, and showed it could detect attacks such as SQL injection and cross-site scripting without needing much labelled data~\cite{pan2019}. Models like this are good at finding strange or broken single requests, but they look at each request on its own, so they cannot see attacks that only show up across many requests over time.
+Deep learning removes the need for hand-built features by learning directly from the raw or lightly processed request data. One common approach is the autoencoder. An autoencoder learns to compress a normal request into a small representation and then rebuild it. If the model is trained only on normal requests, it becomes good at rebuilding normal requests but bad at rebuilding attack requests, so a request with a high rebuild error can be flagged as an anomaly; this reconstruction-based view of anomaly scoring, including the variational form used for the session branch in this paper, has been formalised directly as a reconstruction-probability anomaly score~\cite{ancho2015}. One study used this idea end to end, training a deep autoencoder directly on HTTP requests, and showed it could detect attacks such as SQL injection and cross-site scripting without needing much labelled data~\cite{pan2019}. More recent work has compared convolutional and Transformer-based classifiers for recognising malicious intent directly from HTTP requests~\cite{tiwari2024}, and one recent study combined character-level LSTM and CNN-BiLSTM models to detect web attacks on the CSIC~2010 dataset together with a second, independently collected dataset, though without a shared decision threshold transferred between them~\cite{zhou2025}. Models like this are good at finding strange or broken single requests, but they look at each request on its own, so they cannot see attacks that only show up across many requests over time.
 
 \subsection{Behaviour-Based Deep Learning}
 
-To catch attacks that unfold over several requests, other work models the order and pattern of requests instead of looking at single requests. LSTM networks are built for this, since they can learn from a sequence of past events. DeepLog treats a stream of log lines like a sentence, learning the normal order of events and flagging any sequence that breaks the learned pattern~\cite{du2017}. Later work used a self-attention model, instead of or alongside an LSTM, to learn which parts of a log sequence matter most for telling normal and abnormal apart~\cite{nedelkoski2020}. Closer to our own work, one study built a variational LSTM autoencoder combined with a deviation network, trained directly on HTTP weblogs, and showed it can detect web attacks by modelling normal session behaviour~\cite{jagat2024}. Behaviour-based models like these can catch attacks that content-based models miss, such as scanning or repeated probing, but they need enough real, connected requests from the same client to learn from. If a client only sends one or two requests, there is no real sequence to learn from -- a point this paper returns to directly in Section~\ref{sec5}.
+To catch attacks that unfold over several requests, other work models the order and pattern of requests instead of looking at single requests. LSTM networks are built for this, since they can learn from a sequence of past events. DeepLog treats a stream of log lines like a sentence, learning the normal order of events and flagging any sequence that breaks the learned pattern~\cite{du2017}. Later work used a self-attention model, instead of or alongside an LSTM, to learn which parts of a log sequence matter most for telling normal and abnormal apart~\cite{nedelkoski2020}. Extending this self-attention idea further, a Transformer encoder trained with BERT-style self-supervised objectives has also been used to learn normal log-sequence patterns directly, flagging sequences that deviate from them~\cite{guo2021}. Closer to our own work, one study built a variational LSTM autoencoder combined with a deviation network, trained directly on HTTP weblogs, and showed it can detect web attacks by modelling normal session behaviour~\cite{jagat2024}. Behaviour-based models like these can catch attacks that content-based models miss, such as scanning or repeated probing, but they need enough real, connected requests from the same client to learn from. If a client only sends one or two requests, there is no real sequence to learn from -- a point this paper returns to directly in Section~\ref{sec5}.
 
 \subsection{Hybrid and Fusion-Based Detection}
 
@@ -148,7 +138,7 @@ Table~\ref{tab:lit_review} lists the studies discussed above, the kind of method
 \label{tab:lit_review}
 \scriptsize
 \begin{adjustwidth}{-\extralength}{0cm}
-\begin{tabularx}{\fulllength}{l l l l m{4.5cm}<{\raggedright}}
+\begin{tabularx}{\fulllength}{L L l l m{4.5cm}<{\raggedright}}
 \toprule
 \textbf{Study} & \textbf{Method} & \textbf{Data Type} & \textbf{Evaluation} & \textbf{Main Limitation} \\
 \midrule
@@ -161,11 +151,23 @@ Liu et al.~(2008)~\cite{liu2008} & Isolation Forest & General tabular data & Ben
 
 Chua et al.~(2024)~\cite{chua2024} & Isolation Forest & Web traffic logs & Single dataset & Single detection view, no behaviour model \\
 
+Sch\"{o}lkopf et al.~(2001)~\cite{scholkopf2001} & One-Class SVM & General/high-dim.\ data & Method paper & Not evaluated on web request logs \\
+
+Breiman~(2001)~\cite{breiman2001} & Random Forest & General tabular data & Benchmark datasets & Supervised; needs attack labels, not web-log specific \\
+
 Pan et al.~(2019)~\cite{pan2019} & Stacked denoising autoencoder & HTTP requests & Single dataset & Scores single requests only, no session view \\
+
+An and Cho~(2015)~\cite{ancho2015} & VAE reconstruction probability & General/tabular data & Benchmark datasets & Not evaluated on web or session data \\
+
+Tiwari et al.~(2024)~\cite{tiwari2024} & CNN vs.\ Transformer classifier & HTTP requests & Single dataset & Content-only, no session or fusion view \\
+
+Zhou et al.~(2025)~\cite{zhou2025} & Char-level LSTM/CNN-BiLSTM ensemble & HTTP requests & Two datasets & No session view, no threshold-transfer test \\
 
 Du et al.~(2017)~\cite{du2017} & LSTM (DeepLog) & System logs & Single dataset & Not web-request specific \\
 
 Nedelkoski et al.~(2020)~\cite{nedelkoski2020} & Self-attention classifier & Unstructured logs & Single dataset & No cross-dataset test reported \\
+
+Guo et al.~(2021)~\cite{guo2021} & Transformer (LogBERT) & System logs & Multiple single datasets & Not web-request specific, no cross-dataset test \\
 
 Jagat et al.~(2024)~\cite{jagat2024} & Variational LSTM autoencoder + deviation network & HTTP weblogs & Single dataset & No content-based branch, single dataset \\
 
@@ -198,7 +200,8 @@ An important detail, revisited in Section~\ref{sec5}, is that most of the self-g
 \begin{table}[H]
 \caption{Datasets used in this study.}
 \label{tab:datasets}
-\begin{tabularx}{\textwidth}{lXCCCl}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{tabularx}{\fulllength}{lXCCCX}
 \toprule
 \textbf{Dataset} & \textbf{Format} & \textbf{Total} & \textbf{Normal} & \textbf{Attack} & \textbf{Role} \\
 \midrule
@@ -212,6 +215,7 @@ Access Small Benign & Apache Combined & 120 & 54 & 66 & Ablation, baselines \\
 Access Super Long Session 2000 & Apache Combined & 2{,}000 & 2{,}000 & 0 & Session training only \\
 \bottomrule
 \end{tabularx}
+\end{adjustwidth}
 \end{table}
 
 \subsection{Data Preprocessing and Feature Extraction}
@@ -285,7 +289,7 @@ All models are implemented in Python, using PyTorch for the autoencoder and the 
 
 \subsection{Effect of the Session Construction Fix}
 
-Table~\ref{tab:session_fix} compares the original (uncorrected) session model against the corrected model described in Section~\ref{sec4.5}, on the two datasets that have any real per-client session structure to score: CSIC~2010, where almost all requests come from the same two clients, and Access Super Long Session 2000, a single client sending 2{,}000 requests in a row with no attack traffic at all, so no threshold-based score is meaningful there.
+Table~\ref{tab:session_fix} compares the original (uncorrected) session model against the corrected model described in Section~\ref{sec4.5}, on the two datasets that have any real per-client session structure to score: CSIC~2010, where almost all requests come from the same two clients, and Access Super Long Session 2000, a single client sending 2{,}000 requests in a row with no attack traffic at all, so no threshold-based score is meaningful there. Figure~\ref{fig:session_fix} shows the CSIC~2010 AUC and F1 values from this table side by side.
 
 On CSIC~2010, the fix makes a large difference. The session branch's AUC rises from 0.63 with the original model to 0.97 with the corrected model, and its F1 score rises from 0.14 to 0.22, with precision reaching 1.00.
 
@@ -294,7 +298,8 @@ On the other six datasets (Access Eval Mix 2000, Access Eval Small 500, Nginx JS
 \begin{table}[H]
 \caption{Session branch, before and after the session construction fix.}
 \label{tab:session_fix}
-\begin{tabularx}{\textwidth}{lCCCCC}
+\begin{adjustwidth}{-\extralength}{0cm}
+\begin{tabularx}{\fulllength}{LCCCCC}
 \toprule
 \textbf{Dataset} & \textbf{Model} & \textbf{Requests Scored} & \textbf{AUC} & \textbf{F1} & \textbf{Precision} \\
 \midrule
@@ -304,7 +309,14 @@ Access Eval Mix 2000, and 5 others & Original & all lines & 0.55--0.67 & 0.09--0
 Access Eval Mix 2000, and 5 others & Corrected & 0 & --- & --- & --- \\
 \bottomrule
 \end{tabularx}
+\end{adjustwidth}
 \end{table}
+
+\begin{figure}[H]
+\includegraphics[width=0.6\textwidth]{../artifacts/paper/figures/session_fix_bar.png}
+\caption{Session branch AUC and F1 on CSIC 2010, before and after the session construction fix.}
+\label{fig:session_fix}
+\end{figure}
 
 \subsection{Branch Ablation}
 
@@ -340,7 +352,7 @@ Access Super Long Session 2000 & n/a & n/a & n/a & 0.00 & 0.00 & 0.00 \\
 
 \begin{figure}[H]
 \includegraphics[width=0.72\textwidth]{../artifacts/paper/figures/heatmap_auc.png}
-\caption{AUC by dataset and branch (content, session, fused).}
+\caption{AUC by dataset and branch (columns left to right: fused, content, session).}
 \label{fig:heatmap_auc}
 \end{figure}
 
@@ -348,7 +360,7 @@ Access Super Long Session 2000 & n/a & n/a & n/a & 0.00 & 0.00 & 0.00 \\
 
 Because a session score only exists for CSIC~2010, this is the only dataset where changing the fusion weight has any effect. Table~\ref{tab:fusion_sweep} sweeps the weight given to each branch, from content-only ($w_c=1$) to session-only ($w_s=1$).
 
-AUC and F1 both rise steadily as more weight is put on the session branch, and the best score on both measures is reached at full session weight, not at any blended point in between. This means that, for this dataset, mixing in the content branch never helps; it only pulls the fused score away from the stronger session branch. This goes against the usual assumption that fusing two branches is always better than picking the stronger one, and it is worth stating plainly rather than glossing over. On the other seven datasets, sweeping the weight has no effect, since only a content score exists there.
+AUC and F1 both rise steadily as more weight is put on the session branch, and the best score on both measures is reached at full session weight, not at any blended point in between, as shown in Figure~\ref{fig:fusion_sweep}. This means that, for this dataset, mixing in the content branch never helps; it only pulls the fused score away from the stronger session branch. This goes against the usual assumption that fusing two branches is always better than picking the stronger one, and it is worth stating plainly rather than glossing over. On the other seven datasets, sweeping the weight has no effect, since only a content score exists there.
 
 \begin{table}[H]
 \caption{Fusion weight sweep on CSIC 2010.}
@@ -366,6 +378,12 @@ AUC and F1 both rise steadily as more weight is put on the session branch, and t
 \end{tabularx}
 \end{table}
 
+\begin{figure}[H]
+\includegraphics[width=0.6\textwidth]{../artifacts/paper/figures/fusion_sweep_line.png}
+\caption{AUC and F1 on CSIC 2010 as the fusion weight shifts from content-only ($w_s=0$) to session-only ($w_s=1$).}
+\label{fig:fusion_sweep}
+\end{figure}
+
 \subsection{Cross-Dataset Threshold Transfer}
 
 Table~\ref{tab:threshold_transfer} compares the two ways of setting the decision threshold described in Section~\ref{sec4.7}: self-calibrated (tuned separately on each target dataset, using every row in it) and transferred (set once on CSIC~2010's normal traffic only, then applied unchanged). AUC does not change between the two, since AUC does not depend on a threshold; only precision, recall, F1, and false positive rate change.
@@ -374,7 +392,7 @@ The result is the opposite of what we expected going in. Using the transferred t
 
 The reason is the point already raised in Section~\ref{sec4.2}: these three target datasets are attack-heavy, not normal-heavy (81\%, 79\%, and 78\% attack traffic, respectively). A threshold set at the 95th percentile of a dataset that is mostly attack traffic ends up far too high, since it is really the 95th percentile of a mostly-attack distribution, not a normal-traffic distribution, so it only catches the most extreme 5\% of an already unusual mix. The frozen CSIC threshold, by contrast, is set on genuinely normal traffic, so it sits at a more sensible point and catches far more real attacks, at the cost of a higher false positive rate (up to about 0.30--0.36 on the fused branch, compared to 0.00--0.02 self-calibrated).
 
-This is a useful, practical finding: on these datasets, what data a threshold is calibrated on matters more than whether it is calibrated on the same dataset being tested. A threshold set on real normal traffic, even from a completely different dataset, can work better than one set on the target dataset itself, if that target dataset does not actually represent normal conditions well.
+This is a useful, practical finding: on these datasets, what data a threshold is calibrated on matters more than whether it is calibrated on the same dataset being tested. A threshold set on real normal traffic, even from a completely different dataset, can work better than one set on the target dataset itself, if that target dataset does not actually represent normal conditions well. Figure~\ref{fig:threshold_transfer} shows the self-calibrated and transferred F1 scores side by side for both branches.
 
 \begin{table}[H]
 \caption{Self-calibrated vs. transferred threshold, on the three target datasets.}
@@ -396,13 +414,19 @@ Nginx JSON Eval 800 & Fused & 0.66 & 0.11 & 0.02 & 0.67 & 0.56 & 0.36 \\
 \end{table}
 \unskip
 
+\begin{figure}[H]
+\includegraphics[width=0.72\textwidth]{../artifacts/paper/figures/threshold_transfer_bar.png}
+\caption{Self-calibrated vs.\ transferred-threshold F1, content and fused branches, by target dataset.}
+\label{fig:threshold_transfer}
+\end{figure}
+
 \subsection{Comparison with Classical Baselines}
 
 Table~\ref{tab:baselines} compares our content and fused branches with three classical baselines: Random Forest, which is trained using attack labels, unlike our own models, and Isolation Forest and One-Class SVM, which are trained only on normal traffic, the same setup as our own models.
 
 Random Forest usually reaches the highest AUC of all methods (for example, 0.90 on Access Attacks 200 and 0.89 on CSIC~2010), which is expected, since it is the only method here allowed to see attack labels during training. Its F1 score is also high, but this comes with a much higher false positive rate than our fused branch in every case (for example, 0.55 on Access Eval Mix 2000, compared to 0.00 for our fused branch on the same dataset). This trade-off matters in a real security setting, where too many false alerts can make a system less useful even when its raw detection rate looks strong.
 
-Isolation Forest and One-Class SVM, which do not use attack labels, generally score lower than both Random Forest and our own branches on AUC. Our fused branch beats both of these unsupervised baselines on AUC on five of the seven comparable datasets, and is close on the rest. The one dataset where our system does clearly best of all methods, including Random Forest, is CSIC~2010, where the session branch alone reaches an AUC of 0.97, higher than every other method or baseline in this table.
+Isolation Forest and One-Class SVM, which do not use attack labels, generally score lower than both Random Forest and our own branches on AUC. Our fused branch beats both of these unsupervised baselines on AUC on five of the seven comparable datasets, and is close on the rest. The one dataset where our system does clearly best of all methods, including Random Forest, is CSIC~2010, where the session branch alone reaches an AUC of 0.97, higher than every other method or baseline in this table. Figure~\ref{fig:baseline_auc} plots all five methods' AUC side by side across every dataset.
 
 \begin{table}[H]
 \caption{Comparison with classical baselines.}
@@ -425,6 +449,12 @@ Access Small Benign & 0.63 & 0.63 & 0.72 & 0.25 & 0.76 & 0.47 \\
 \end{table}
 \unskip
 
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{../artifacts/paper/figures/baseline_auc_bar.png}
+\caption{AUC by method and dataset: our content and fused branches against Random Forest, Isolation Forest, and One-Class SVM.}
+\label{fig:baseline_auc}
+\end{figure}
+
 \subsection{Inference Speed}
 
 We also measured how fast the system runs, using the Access Eval Mix 2000 log. Scoring one request at a time, as a live system would, the content branch takes about 0.14~ms per request on average, and the session branch about 0.08~ms, giving an overall throughput of about 4{,}420 requests per second. Scoring in batches instead, the same log runs at about 630{,}000 lines per second, roughly 140 times faster than one-at-a-time scoring. Both numbers are fast enough for near-real-time use on ordinary hardware, with batch scoring far ahead whenever requests can be grouped before scoring.
@@ -434,10 +464,66 @@ We also measured how fast the system runs, using the Access Eval Mix 2000 log. S
 Taken together, these results show three things. First, the session branch is powerful, but only where the traffic actually contains real client sessions; the fix in Section~\ref{sec4.5} changes its usefulness from close to a coin flip to strong detection on the one dataset, CSIC~2010, where it can genuinely operate. Second, fusion is not automatically better than picking the stronger branch: on CSIC~2010, weighting fully toward the session branch beats every blended fusion weight tested. Third, how a threshold is set matters as much as which model produces the score: a threshold frozen from real normal traffic, even from a different dataset, outperformed a threshold tuned on the target dataset itself, because several of the target datasets used here are attack-heavy rather than normal-heavy.
 
 \section{Discussion} \label{sec6}
-%TODO: next section to draft.
+
+The results in Section~\ref{sec5} support the case, made in Section~\ref{sec1}, that content-based and behaviour-based detection are complementary rather than interchangeable, but they also complicate the usual assumption that combining the two is always the better choice. Prior hybrid, fusion-based work has generally reported that combining detection signals improves over any single-model detector~\cite{kamal2025}, and the session branch here does exactly what that line of work would predict on CSIC~2010, comfortably outperforming the content branch alone once its session windows are built correctly. What the fusion-weight sweep in Table~\ref{tab:fusion_sweep} shows, however, is that blending the two branches on that same dataset is strictly worse than using the session branch on its own: every mixed weight tested sits between the two single-branch scores, and the best result is at full session weight. This is not a contradiction of the hybrid-detection literature so much as a boundary condition on it -- fusion helps when the two branches make comparably reliable but different mistakes, and it hurts when one branch is reliably much stronger than the other on the traffic being scored, since averaging then just pulls the fused score toward the weaker signal. A fixed 50/50 weighting, of the kind used as a sensible default in the absence of other information, is therefore not a safe assumption to carry into a new dataset without checking it.
+
+The session-branch results also speak directly to the caveat raised about behaviour-based detection in Section~\ref{sec3}: a sequence model can only model a sequence if one actually exists in the data. The correction described in Section~\ref{sec4.5} is a straightforward bug fix -- windows should never mix requests from different clients -- but its effect size (AUC rising from 0.63 to 0.97 on CSIC~2010) shows how badly a session model can be misled by session windows that are not really sessions at all. The other side of that same fix is that six of the eight datasets used here have essentially no client with 20 or more requests to build a window from, so the corrected model produces no score on them whatsoever. This is a genuine limitation of session-based detection as a technique, not an artefact of this particular implementation, and it means that a deployment decision about whether to run a session branch at all should be based on measuring the client request-count distribution of the target traffic first, rather than assumed to be generally useful the way the content branch is.
+
+The cross-dataset threshold-transfer result in Table~\ref{tab:threshold_transfer} is the most counter-intuitive finding in this study, and it is worth being explicit about why it happens rather than treating it only as a number. A percentile threshold is only a meaningful proxy for "unusually different from normal traffic" if the distribution it is computed on is itself mostly normal traffic. Three of the target datasets used here are between 78\% and 81\% attack traffic (Section~\ref{sec4.2}), so their 95th-percentile self-calibrated threshold is really closer to their 80th-to-85th percentile of \emph{normal-traffic-equivalent} behaviour once the attack-heavy composition is accounted for, which sets the bar for an alert far too high and produces the very low recall and F1 seen in the self-calibrated columns of Table~\ref{tab:threshold_transfer}. This is consistent with the broader finding in the cross-dataset generalisation literature that a fixed evaluation protocol can hide large differences in how well a threshold transfers~\cite{cantone2024}, but the direction of the effect here is the opposite of the usual warning: instead of a model looking better than it really is because it was tuned on its own test data, the self-calibrated approach makes the framework look far \emph{worse} than it is, because the calibration data was not the kind of traffic a percentile threshold assumes. The practical implication is that a percentile threshold should be calibrated on traffic that is known, or at least believed with reasonable confidence, to be predominantly normal, even if that traffic comes from a different source than the traffic being monitored, rather than calibrated automatically on whatever traffic happens to be available at deployment time.
+
+Against the classical baselines, the pattern in Table~\ref{tab:baselines} reinforces a point made in Section~\ref{sec4.7} about what this framework is optimised for. Random Forest reaches the highest AUC in most cases, which is unsurprising given it is the only method trained with attack labels, but it does so with a false positive rate several times higher than the fused branch on every dataset compared. In a real deployment, false positives carry a direct operational cost -- alerts that must be triaged by a human -- so a detector with a lower AUC but a substantially lower false-positive rate is not automatically the worse choice, particularly for a semi-supervised setting where attack labels are assumed unavailable in the first place. The unsupervised baselines (Isolation Forest, One-Class SVM) are a fairer comparison, since they share the same no-attack-label constraint as this framework, and the fused branch matches or beats both on AUC on most datasets while keeping a comparable or lower false-positive rate. Combined with the inference-speed results in Section~\ref{sec5}, which show the framework comfortably meets near-real-time throughput requirements, this suggests the precision-first design carried over from the original thesis work (Section~\ref{sec4}) is a reasonable operating point for a system meant to generate trustworthy rather than exhaustive alerts.
+
+This study has several limitations that should temper how far its findings are generalised. First, the session branch's strong result is demonstrated on only one dataset, CSIC~2010, because it is the only dataset in this study with enough per-client requests to build real session windows; the claim that a corrected session model helps is well supported where it applies, but it has not been shown to help on genuinely session-rich traffic of a different shape or scale. Second, several of the self-generated datasets are small (as few as 120 to 500 requests), which limits the statistical precision of the metrics computed on them and means single-point AUC and F1 differences between datasets should be read as indicative rather than tightly bounded. Third, the 11-feature representation (Table~\ref{tab:features}) is deliberately structural and does not inspect request bodies or query values directly, so it is unlikely to catch attacks whose payload is anomalous but whose structural shape (method, path length, status code, response size) looks unremarkable; this is a deliberate scope choice rather than an oversight, but it bounds what the content branch can be expected to catch. Fourth, the self-generated attack traffic was produced with a small number of well-known tools (sqlmap and nikto), so it may not represent the full diversity of real-world attack techniques or evasion strategies. Fifth, all results are reported from a single training and evaluation run per configuration, without repeated trials, cross-validation, or confidence intervals, so, as with the fixed random seed noted in Section~\ref{sec4}, the reported numbers should be read as reproducible rather than as statistically confirmed against run-to-run variance. Sixth, all evaluation here is offline, on fixed logs; the inference-speed measurements in Section~\ref{sec5} indicate the framework's computational profile is compatible with real-time use, but the framework has not actually been run against a live traffic stream, so behaviour under real deployment conditions such as concept drift or partially arriving sessions remains untested.
+
+These limitations point to concrete future work. Testing the corrected session model on additional datasets with genuine, larger-scale multi-request sessions would show whether the CSIC~2010 result generalises or is specific to that dataset's traffic pattern. Extending the feature representation to include lightweight payload or query-string signals, without giving up the efficiency of the current structural features, could let the content branch catch attacks that do not alter a request's structural shape. Because the threshold-transfer result depends entirely on how "normal enough to calibrate on" is judged, an adaptive or likelihood-based thresholding scheme that estimates its own confidence in the calibration data, rather than assuming a fixed percentile is always appropriate, is a natural next step. Finally, validating the framework against live or replayed traffic, and evaluating it against a wider and more current set of attack tools, would test the real-time and generalisation claims made here under conditions closer to genuine deployment.
 
 \section{Conclusions} \label{sec7}
-%TODO: next section to draft.
+
+This paper presented a hybrid anomaly detection framework for web server logs that fuses a content-based autoencoder, scoring individual HTTP requests on their structural features, with a session-based variational LSTM autoencoder, scoring genuine per-client request sequences. The framework was evaluated across eight datasets spanning three log formats -- self-generated Apache-style logs, a structured Nginx JSON log, and the public CSIC~2010 HTTP dataset -- under both a standard branch ablation and a strict cross-dataset threshold-transfer protocol, rather than the single-dataset evaluations that dominate much of the existing literature on this problem (Section~\ref{sec3}).
+
+Three findings stand out. First, correcting a genuine session-construction fault, which previously let session windows mix requests from different clients, raised the session branch's AUC on CSIC~2010 from 0.63 to 0.97, but the same corrected model produced no score at all on the six datasets that lack real multi-request client sessions to build windows from. A session-based branch is therefore only as useful as the session structure actually present in the traffic, and this should be checked before assuming one will help. Second, fusing the two branches is not automatically better than using the stronger one alone: on CSIC~2010, the only dataset where both branches produce a score, weighting fully toward the session branch beat every blended fusion weight tested, which goes against the usual assumption that combining detection signals is always advantageous. Third, a decision threshold calibrated once on genuinely normal CSIC~2010 traffic and transferred unchanged to three attack-heavy target datasets raised fused F1 by roughly four to five times over a threshold tuned separately on each target dataset (for example, 0.12 to 0.67 on Access Eval Mix 2000), because those target datasets contain too much attack traffic for a self-calibrated percentile threshold to represent normal behaviour at all. Alongside these three findings, the framework achieved a substantially lower false-positive rate than a labelled Random Forest baseline, matched or exceeded unsupervised Isolation Forest and One-Class SVM baselines on most datasets, and processed requests fast enough for near-real-time use, at roughly 630{,}000 lines per second in batch mode.
+
+Taken together, these results argue that in fusion-based web-log anomaly detection, how session windows are built and how detection thresholds are calibrated can matter as much as which model architecture is used, and that both should be evaluated explicitly rather than assumed to transfer safely from one dataset or deployment to another. The main limitations of this study -- a single dataset with genuine session structure to demonstrate the session branch's benefit on, a structural rather than payload-aware feature representation, and evaluation on offline logs rather than live traffic (Section~\ref{sec6}) -- point directly to future work: testing the corrected session model on additional session-rich datasets, extending the feature representation to lightweight payload signals, developing an adaptive thresholding scheme that can judge how normal its own calibration data is, and validating the framework against live or replayed traffic. Overall, this work shows that a carefully constructed, dataset-aware hybrid detector can generalise across genuinely different web log formats and traffic compositions, provided its session modelling and threshold calibration are matched to the structure of the data it is actually applied to, rather than treated as fixed design choices.
+
+\vspace{6pt}
+
+\authorcontributions{A.R.:~Conceptualization, Methodology, Software, Validation, Formal Analysis, Investigation, Data Curation, Writing---Original Draft Preparation, Writing---Review and Editing, Visualisation. R.U.:~Conceptualization, Validation, Writing---Review and Editing, Supervision, Project Administration. M.H.:~Conceptualization, Validation, Writing---Review and Editing, Supervision. All authors have read and agreed to the published version of the manuscript.}
+
+\funding{This work received no external funding.}
+
+\institutionalreview{Not applicable. This research did not involve human participants or animals. The self-generated traffic logs were produced against a test application built for this study, and the CSIC~2010 dataset is a pre-existing, publicly available dataset.}
+
+\informedconsent{Not applicable.}
+
+\dataavailability{The CSIC~2010 HTTP dataset is publicly available from the Information Security Institute of CSIC (Spanish National Research Council). The self-generated Apache- and Nginx-style log datasets, together with the trained models, scalers, and score outputs used to produce the results in Section~\ref{sec5}, are available from the corresponding author upon reasonable request.}
+
+\acknowledgments{The University of the West of Scotland is thanked for providing the academic environment and computational facilities for conducting this research. The authors also thank their supervisors for their guidance and constructive feedback throughout this work.}
+
+\conflictsofinterest{The authors declare no conflicts of interest.}
+
+\abbreviations{Abbreviations}{
+The following abbreviations are used in this manuscript:\\
+
+\noindent
+\begin{tabular}{@{}ll}
+HTTP & Hypertext Transfer Protocol\\
+IDS/IPS & Intrusion Detection/Prevention System\\
+LSTM & Long Short-Term Memory\\
+VAE & Variational Autoencoder\\
+KL & Kullback--Leibler (divergence)\\
+AE & Autoencoder\\
+ROC & Receiver Operating Characteristic\\
+AUC & Area Under the Curve\\
+PR & Precision--Recall\\
+F1 & F1 Score (harmonic mean of precision and recall)\\
+FPR & False Positive Rate\\
+RF & Random Forest\\
+SVM & Support Vector Machine\\
+OCSVM & One-Class Support Vector Machine\\
+JSON & JavaScript Object Notation\\
+API & Application Programming Interface
+\end{tabular}
+}
 
 %=================================================================
 \begin{adjustwidth}{-\extralength}{0cm}
@@ -450,11 +536,20 @@ Scarfone, K.; Mell, P. \emph{Guide to Intrusion Detection and Prevention Systems
 \bibitem[Chandola et al.(2009)]{chandola2009}
 Chandola, V.; Banerjee, A.; Kumar, V. Anomaly detection: A survey. \emph{ACM Comput. Surv.} \textbf{2009}, \emph{41}, 15. \url{https://doi.org/10.1145/1541880.1541882}.
 
+\bibitem[Hochreiter and Schmidhuber(1997)]{hochreiter1997}
+Hochreiter, S.; Schmidhuber, J. Long Short-Term Memory. \emph{Neural Comput.} \textbf{1997}, \emph{9}, 1735--1780. \url{https://doi.org/10.1162/neco.1997.9.8.1735}.
+
 \bibitem[Nedelkoski et al.(2020)]{nedelkoski2020}
 Nedelkoski, S.; Bogatinovski, J.; Acker, A.; Cardoso, J.; Kao, O. Self-Attentive Classification-Based Anomaly Detection in Unstructured Logs. In Proceedings of the 2020 IEEE International Conference on Data Mining (ICDM), Sorrento, Italy, 17--20 November 2020; pp. 1196--1201. \url{https://arxiv.org/abs/2008.09340}.
 
 \bibitem[Du et al.(2017)]{du2017}
 Du, M.; Li, F.; Zheng, G.; Srikumar, V. DeepLog: Anomaly Detection and Diagnosis from System Logs through Deep Learning. In Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security (CCS), Dallas, TX, USA, 30 October--3 November 2017; pp. 1285--1298.
+
+\bibitem[Kingma and Welling(2014)]{kingma2014}
+Kingma, D.P.; Welling, M. Auto-Encoding Variational Bayes. In Proceedings of the 2nd International Conference on Learning Representations (ICLR), Banff, AB, Canada, 14--16 April 2014. \url{https://arxiv.org/abs/1312.6114}.
+
+\bibitem[An and Cho(2015)]{ancho2015}
+An, J.; Cho, S. Variational Autoencoder based Anomaly Detection using Reconstruction Probability; SNU Data Mining Center Technical Report 2015-2; Seoul National University: Seoul, Republic of Korea, 2015.
 
 \bibitem[Jagat et al.(2024)]{jagat2024}
 Jagat, R.R.; Sisodia, D.S.; Singh, P. Detecting Web Attacks From HTTP Weblogs Using Variational LSTM Autoencoder Deviation Network. \emph{IEEE Trans. Serv. Comput.} \textbf{2024}, \emph{17}, 2210--2222. \url{https://doi.org/10.1109/TSC.2024.3453748}.
@@ -471,8 +566,23 @@ Liu, F.T.; Ting, K.M.; Zhou, Z.-H. Isolation Forest. In Proceedings of the 2008 
 \bibitem[Chua et al.(2024)]{chua2024}
 Chua, W.; Pajas, A.L.D.; Castro, C.S.; Panganiban, S.P.; Pasuquin, A.J.; Purganan, M.J.; Malupeng, R.; Pingad, D.J.; Orolfo, J.P.; Lua, H.H.; et al. Web Traffic Anomaly Detection Using Isolation Forest. \emph{Informatics} \textbf{2024}, \emph{11}, 83. \url{https://doi.org/10.3390/informatics11040083}.
 
+\bibitem[Sch\"{o}lkopf et al.(2001)]{scholkopf2001}
+Sch\"{o}lkopf, B.; Platt, J.C.; Shawe-Taylor, J.; Smola, A.J.; Williamson, R.C. Estimating the Support of a High-Dimensional Distribution. \emph{Neural Comput.} \textbf{2001}, \emph{13}, 1443--1471. \url{https://doi.org/10.1162/089976601750264965}.
+
+\bibitem[Breiman(2001)]{breiman2001}
+Breiman, L. Random Forests. \emph{Mach. Learn.} \textbf{2001}, \emph{45}, 5--32. \url{https://doi.org/10.1023/A:1010933404324}.
+
 \bibitem[Pan et al.(2019)]{pan2019}
 Pan, Y.; Sun, F.; Teng, Z.; White, J.; Schmidt, D.C.; Staples, J.; Krause, L. Detecting web attacks with end-to-end deep learning. \emph{J. Internet Serv. Appl.} \textbf{2019}, \emph{10}, 16. \url{https://doi.org/10.1186/s13174-019-0115-x}.
+
+\bibitem[Tiwari et al.(2024)]{tiwari2024}
+Tiwari, K.; Bhatia, A.S.; Garg, N.; Arora, I.; Saini, P. Comparative Analysis of CNN and Transformers on Malicious Intent Detection in HTTP. In \emph{The Future of Artificial Intelligence and Robotics}; Springer: Cham, Switzerland, 2024; pp. 438--453. \url{https://doi.org/10.1007/978-3-031-60935-0_40}.
+
+\bibitem[Zhou et al.(2025)]{zhou2025}
+Zhou, L.; Yau, W.-C.; Gan, Y.S.; Liong, S.-T. E-WebGuard: Enhanced neural architectures for precision web attack detection. \emph{Comput. Secur.} \textbf{2025}, \emph{148}, 104127. \url{https://doi.org/10.1016/j.cose.2024.104127}.
+
+\bibitem[Guo et al.(2021)]{guo2021}
+Guo, H.; Yuan, S.; Wu, X. LogBERT: Log Anomaly Detection via BERT. In Proceedings of the 2021 International Joint Conference on Neural Networks (IJCNN), Shenzhen, China, 18--22 July 2021; pp. 1--8. \url{https://doi.org/10.1109/IJCNN52387.2021.9534113}.
 
 \bibitem[Cantone et al.(2024)]{cantone2024}
 Cantone, M.; Marrocco, C.; Bria, A. Machine learning in network intrusion detection: A cross-dataset generalization study. \emph{IEEE Access} \textbf{2024}, \emph{12}, 144489--144508. \url{https://doi.org/10.1109/ACCESS.2024.3472907}.
