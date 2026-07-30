@@ -42,6 +42,12 @@
 \usepackage[T1]{fontenc}
 \usepackage{booktabs}
 
+% Supervisor feedback: no real DOI has been assigned yet, so the class's
+% auto-generated placeholder DOI link in the page footer (\rfoot, set from
+% \@doinum) should not be shown. Blank it out here, after the class has
+% already set it, rather than editing the vendor class file directly.
+\rfoot{}
+
 %=================================================================
 % TITLE -- DRAFT, needs confirmation. Mirrors the peer paper's
 % "[qualifier] Anomaly Detection for [traffic] Using [method A] with
@@ -50,12 +56,12 @@
 
 % AUTHOR BLOCK. Matches the peer paper's author-role pattern (student
 % first/corresponding author, supervisor + moderator as co-authors).
-% Moderator's name confirmed as "Muhsin Hussenu" (thesis body/
-% acknowledgements spelling), resolving the inconsistency against
-% "Muhsin Husseinu" (thesis title page) and "Muhsin Hassanu" (peer paper).
-\Author{Abdul Rehman *, Raja Ujjan and Muhsin Hussenu *}
+% Moderator's surname confirmed directly by Mr Hassanu as "Hassanu",
+% resolving the earlier inconsistency against "Muhsin Hussenu" (thesis
+% body/acknowledgements) and "Muhsin Husseinu" (thesis title page).
+\Author{Abdul Rehman *, Raja Ujjan and Muhsin Hassanu *}
 
-\AuthorNames{Abdul Rehman, Raja Ujjan, and Muhsin Hussenu}
+\AuthorNames{Abdul Rehman, Raja Ujjan, and Muhsin Hassanu}
 
 \address[1]{Department of Computing and Cybersecurity, University of the West of Scotland, London Campus, London E14 2BA, UK}
 
@@ -100,8 +106,6 @@ Fourth, we test the system on more than one kind of log. We use two Apache-style
 Fifth, we run a cross-dataset test that checks if a threshold set on one dataset still works on another. We set the detection threshold using only the CSIC data, and only its normal, non-attack traffic. Then we use that same threshold, with no change, on three other datasets. The result is surprising: F1 score goes up, not down, when we use the frozen CSIC threshold instead of a threshold tuned on each dataset on its own. For example, on the Access Eval Mix 2000 dataset, the fused F1 score rises from about 0.12 (tuned on that dataset) to about 0.67 (using the frozen CSIC threshold). This happens because these test datasets contain a lot of attack traffic, so a threshold tuned only on them is not a fair "normal traffic" threshold. This is a useful, real finding about how to set thresholds in practice.
 
 Sixth, we compare our system with simple baseline methods: Random Forest, which uses attack labels during training, and Isolation Forest and One-Class SVM, which do not use labels, like our own method. We also measure how fast the system runs. On average, scoring one request takes about 0.14~ms for the content part and about 0.08~ms for the behaviour part when done one request at a time, and scoring in batches is much faster, at about 630{,}000 lines per second. This shows the system could run in near real time.
-
-Together, these results show that a two-part fusion system can work well across different kinds of web log data, and that fixing how sessions are built and how thresholds are set can matter as much as the choice of model itself.
 
 \section{Related Work} \label{sec3}
 
@@ -183,6 +187,8 @@ Cantone et al.~(2024)~\cite{cantone2024} & Multiple classical ML models & Networ
 \end{table}
 \unskip
 
+Table~\ref{tab:lit_review} pulls this together in one place: what each study did, what kind of data it used, and where it falls short compared to what this paper does. Reading down the last column, the same few gaps keep repeating: most methods are checked on only one dataset, most do not combine a content view with a behaviour view, and none test whether a threshold set on one dataset still works on another. This paper is built to close those gaps together, rather than one at a time.
+
 \section{Materials and Methods} \label{sec4}
 
 \subsection{Research Design Overview}
@@ -218,6 +224,8 @@ Access Super Long Session 2000 & Apache Combined & 2{,}000 & 2{,}000 & 0 & Sessi
 \end{adjustwidth}
 \end{table}
 
+Table~\ref{tab:datasets} lays out all eight datasets side by side: their format, their size, how many normal and attack requests each one has, and what role each plays in the experiments that follow. The Normal and Attack columns show why CSIC~2010 was chosen as the source dataset for the cross-dataset transfer test (Section~\ref{sec4.7}): it is the only dataset here with a large, genuinely normal-dominated portion of traffic (36{,}000 of 61{,}065 requests), which is what a threshold calibration needs. By contrast, the three target datasets (Access Eval Mix 2000, Access Eval Small 500, Nginx JSON Eval 800) are mostly attack traffic, which is exactly why a threshold set directly on them, as discussed above, is not a fair "normal traffic" threshold.
+
 \subsection{Data Preprocessing and Feature Extraction}
 
 Each log line is first parsed into a common set of fields: client IP address, timestamp, request method, path, response status, response size, and, where available, the user agent string. Three log line formats are supported: Apache Combined (which includes referrer and user agent), Apache Common (without those two fields), and structured JSON lines, so that Nginx JSON Eval 800 can be parsed with the same pipeline as the Apache-style logs.
@@ -244,6 +252,8 @@ Log response size & Natural log of the response size in bytes \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+Table~\ref{tab:features} lists all 11 numbers built from a single request. Most are simple structural counts or flags: the method, the path length, whether the path looks like an API call or a file, the status code and which hundred-range it falls in, plus one number built from the response size. None of them look inside the request body or the query values themselves, which is why, as noted above, this feature set is built to catch strange-looking requests and sequences, not necessarily a strange value hidden inside an otherwise normal-looking request.
 
 \subsection{Content-Based Autoencoder}
 
@@ -309,8 +319,11 @@ Access Eval Mix 2000, and 5 others & Original & all lines & 0.55--0.67 & 0.09--0
 Access Eval Mix 2000, and 5 others & Corrected & 0 & --- & --- & --- \\
 \bottomrule
 \end{tabularx}
+{\footnotesize\textit{Note: ``---'' means no score could be computed at all, not a score of zero. The corrected model needs at least 20 requests from the same client before it produces a score, and none of these six datasets has any client that sends that many requests, so the corrected model has nothing to score there.}\par}
 \end{adjustwidth}
 \end{table}
+
+Table~\ref{tab:session_fix} puts the two main facts about the session-branch fix in one place: on CSIC~2010, correcting the session windows raises AUC from 0.63 to 0.97 and F1 from 0.14 to 0.22, with precision reaching 1.00; and on every other dataset, the corrected model does not just score worse, it produces no score at all, for the reason given in the note below the table and in the paragraph above it.
 
 \begin{figure}[H]
 \includegraphics[width=0.6\textwidth]{../artifacts/paper/figures/session_fix_bar.png}
@@ -350,11 +363,15 @@ Access Super Long Session 2000 & n/a & n/a & n/a & 0.00 & 0.00 & 0.00 \\
 \end{table}
 \unskip
 
+Table~\ref{tab:ablation} is the main result of this section: it lines up the content, session, and fused branches on every dataset, using the corrected session model throughout. It shows the same pattern described above in numbers: the session column only has values for CSIC~2010, the fused branch matches the content branch exactly wherever no session score exists, and CSIC~2010 is the one row where the session branch clearly leads both other branches.
+
 \begin{figure}[H]
 \includegraphics[width=0.72\textwidth]{../artifacts/paper/figures/heatmap_auc.png}
 \caption{AUC by dataset and branch (columns left to right: fused, content, session).}
 \label{fig:heatmap_auc}
 \end{figure}
+
+Figure~\ref{fig:heatmap_auc} shows the same numbers as Table~\ref{tab:ablation}, laid out as a colour grid with one row per dataset and one column for each branch, where darker cells mean a higher AUC. The session column is empty for every dataset except CSIC~2010, since that is the only dataset where the session branch produces a score at all. The one clearly dark cell in the whole grid is CSIC~2010's session column; the rest of the grid sits in a narrower, more medium range. This makes it easy to see, at a glance, that the session branch's strong result is one bright spot rather than a pattern repeated across datasets.
 
 \subsection{Fusion Weight Sensitivity}
 
@@ -383,6 +400,8 @@ AUC and F1 both rise steadily as more weight is put on the session branch, and t
 \caption{AUC and F1 on CSIC 2010 as the fusion weight shifts from content-only ($w_s=0$) to session-only ($w_s=1$).}
 \label{fig:fusion_sweep}
 \end{figure}
+
+Figure~\ref{fig:fusion_sweep} shows both the AUC line and the F1 line climbing together as more weight moves toward the session branch, with no dip or bump anywhere in between. If mixing the two branches ever helped more than using the stronger branch alone, we would expect to see a peak somewhere in the middle of the plot. Instead, both lines reach their highest point only at the session-only end. This is the clearest way to see that, for this dataset, blending in the content branch only pulls the score down; it never lifts it above what the session branch reaches on its own.
 
 \subsection{Cross-Dataset Threshold Transfer}
 
@@ -420,6 +439,8 @@ Nginx JSON Eval 800 & Fused & 0.66 & 0.11 & 0.02 & 0.67 & 0.56 & 0.36 \\
 \label{fig:threshold_transfer}
 \end{figure}
 
+Figure~\ref{fig:threshold_transfer} places the self-calibrated and transferred F1 scores side by side for each target dataset, for both the content and fused branches. In every pair of bars, the transferred-threshold bar is much taller than the self-calibrated bar next to it, across all three datasets and both branches. This makes the size of the improvement easy to see at a glance: it is not a small edge in one or two cases, it is a large, consistent jump everywhere this comparison is made.
+
 \subsection{Comparison with Classical Baselines}
 
 Table~\ref{tab:baselines} compares our content and fused branches with three classical baselines: Random Forest, which is trained using attack labels, unlike our own models, and Isolation Forest and One-Class SVM, which are trained only on normal traffic, the same setup as our own models.
@@ -454,6 +475,8 @@ Access Small Benign & 0.63 & 0.63 & 0.72 & 0.25 & 0.76 & 0.47 \\
 \caption{AUC by method and dataset: our content and fused branches against Random Forest, Isolation Forest, and One-Class SVM.}
 \label{fig:baseline_auc}
 \end{figure}
+
+Figure~\ref{fig:baseline_auc} lines up all five methods' AUC scores side by side for every dataset, so the pattern in Table~\ref{tab:baselines} can be seen directly. Random Forest's bar is usually the tallest, since it is the only method trained with attack labels. Our fused branch's bar is ahead of both Isolation Forest and One-Class SVM on four of the seven datasets, mixed on two more, and clearly behind both on Access Attacks 200, where Isolation Forest's bar is noticeably taller than ours.
 
 \subsection{Inference Speed}
 
