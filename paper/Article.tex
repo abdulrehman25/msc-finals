@@ -14,7 +14,7 @@
 % be rewritten once the class is available -- only the \documentclass
 % line and packages need the real class file to render.
 %=================================================================
-\documentclass[futureinternet,article,accept,moreauthors]{Definitions/mdpi}
+\documentclass[futureinternet,article,submit,moreauthors]{Definitions/mdpi}
 
 \firstpage{1}
 \makeatletter
@@ -25,7 +25,7 @@
 \articlenumber{0}
 \pubyear{2026}
 \copyrightyear{2026}
-\externaleditor{Firstname Lastname}
+\externaleditor{}
 \datereceived{ }
 \daterevised{ }
 \dateaccepted{ }
@@ -59,15 +59,24 @@
 % Moderator's surname confirmed directly by Mr Hassanu as "Hassanu",
 % resolving the earlier inconsistency against "Muhsin Hussenu" (thesis
 % body/acknowledgements) and "Muhsin Husseinu" (thesis title page).
+% ORCID: MDPI requires an ORCID iD for at least the corresponding author.
+% Define each author's ORCID below (letters A, B, C map 1:1 to author order),
+% then append the matching \orcidX{} icon-link straight after that author's
+% name in \Author{} below (e.g. "Abdul Rehman \orcidA{}"). Replace the
+% dummy digits with the real ORCID iDs before submission.
+% \newcommand{\orcidauthorA}{0000-0000-0000-0000}
+% \newcommand{\orcidauthorB}{0000-0000-0000-0000}
+% \newcommand{\orcidauthorC}{0000-0000-0000-0000}
+
 \Author{Abdul Rehman *, Raja Ujjan and Muhsin Hassanu *}
 
 \AuthorNames{Abdul Rehman, Raja Ujjan, and Muhsin Hassanu}
 
 \address[1]{Department of Computing and Cybersecurity, University of the West of Scotland, London Campus, London E14 2BA, UK}
 
-\corres{Correspondence: abdulrehmankhokhar25@gmail.com (A.R.)}
+\corres{Correspondence: abdulrehmankhokhar25@gmail.com (A.R.); muhsin.hassanu@uws.ac.uk (M.H.)}
 
-\abstract{Web server logs are one of the richest sources of security-relevant information available to defenders, but signature- and rule-based inspection cannot catch attacks that do not match a known pattern, and most existing anomaly-detection studies are validated on a single dataset, log format, and traffic mix, which risks overstating how well a method will generalise once deployed. This paper presents a hybrid anomaly detection framework for web server logs that fuses a content-based autoencoder, which scores individual HTTP requests on their structural features, with a session-based variational LSTM autoencoder, which scores genuine per-client request sequences rather than an arbitrary sliding window over the raw log stream. The framework is evaluated across eight datasets spanning three log formats -- self-generated Apache-style logs, a structured Nginx JSON log, and the public CSIC~2010 HTTP dataset -- under both within-dataset and cross-dataset threshold-transfer protocols. Correcting a session-construction fault that let windows mix requests from different clients raises the session branch's AUC on CSIC~2010 from 0.63 to 0.97, but the branch produces no score at all on datasets where clients rarely issue more than one or two requests, showing that its benefit is conditional on genuine session structure being present in the traffic. Fusing the two branches is not uniformly beneficial: on CSIC~2010, weighting fully toward the session branch outperforms every blended fusion weight tested. A decision threshold calibrated once on normal CSIC~2010 traffic and transferred unchanged to three attack-heavy target datasets raises fused F1 by roughly five to six times over a threshold tuned on each target dataset directly (for example, 0.12 to 0.67 on Access Eval Mix 2000), because those target datasets contain too much attack traffic to yield a meaningful self-calibrated, normal-traffic threshold. The framework also achieves a substantially lower false positive rate than a labelled Random Forest baseline at comparable or better AUC than unsupervised Isolation Forest and One-Class SVM baselines, and it processes requests fast enough for near-real-time use, at about 630{,}000 lines per second in batch mode. These results indicate that how session structure and detection thresholds are built and calibrated can matter as much as the choice of underlying model.}
+\abstract{Web server logs are rich in security-relevant information, but rule-based inspection misses unseen attacks, and most anomaly-detection studies validate on a single dataset, risking overstated generalisation. This paper presents a hybrid framework fusing a content-based autoencoder that scores individual HTTP requests with a session-based variational LSTM autoencoder that scores genuine per-client request sequences, evaluated across eight datasets spanning three log formats, including the public CSIC~2010 HTTP dataset, under within- and cross-dataset threshold-transfer protocols. Fixing a session-construction fault that mixed different clients' requests raises the session branch's AUC on CSIC~2010 from 0.63 to 0.97, though it scores nothing for clients with only one or two requests, so its benefit depends on real session structure. Fusion is not uniformly beneficial: on CSIC~2010, weighting fully toward the session branch beats every blended weight tested. A threshold calibrated once on normal CSIC~2010 traffic and transferred unchanged to three attack-heavy datasets raises fused F1 five- to six-fold over a per-dataset threshold, since those datasets are too attack-heavy for self-calibration to be meaningful. The framework also achieves a lower false positive rate than a labelled Random Forest baseline at comparable or better AUC than unsupervised baselines, and runs fast enough for near-real-time use. Session structure and threshold calibration can matter as much as model choice.}
 
 \keyword{web server logs; anomaly detection; autoencoder; variational LSTM; session modelling; score fusion; cross-dataset generalisation}
 
