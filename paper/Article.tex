@@ -1,19 +1,3 @@
-%=================================================================
-% DRAFT MANUSCRIPT -- work in progress, section by section.
-% Mirrors the structure/format of futureinternet-4330203-done (1).tex
-% (Nouman, Ujjan & Hassanu, MDPI Future Internet), per the same
-% supervisor's template, adapted to this project's own dataset,
-% methods, and results (see artifacts/paper/tables and thesis_context
-% memory for the underlying numbers).
-%
-% NOTE: Definitions/mdpi.cls is NOT yet present in this repo (the peer
-% .tex file references it but the class files weren't included when
-% the reference files were added). This document cannot be compiled
-% until that class is sourced from MDPI's submission template. Content
-% is being drafted in full MDPI-command form now so nothing needs to
-% be rewritten once the class is available -- only the \documentclass
-% line and packages need the real class file to render.
-%=================================================================
 \documentclass[futureinternet,article,submit,moreauthors]{Definitions/mdpi}
 
 \firstpage{1}
@@ -151,47 +135,31 @@ Table~\ref{tab:lit_review} lists the studies discussed above, the kind of method
 \label{tab:lit_review}
 \scriptsize
 \begin{adjustwidth}{-\extralength}{0cm}
+\renewcommand{\arraystretch}{1.35}
 \begin{tabularx}{\fulllength}{L L l l m{4.5cm}<{\raggedright}}
 \toprule
 \textbf{Study} & \textbf{Method} & \textbf{Data Type} & \textbf{Evaluation} & \textbf{Main Limitation} \\
 \midrule
-
 Scarfone and Mell~(2007)~\cite{scarfone2007} & Rule-based IDS/IPS guidance & Network traffic & Guidance document & Rules only catch known attack patterns \\
-
 Chandola et al.~(2009)~\cite{chandola2009} & Survey & General & Review study & No single detector proposed \\
-
 Liu et al.~(2008)~\cite{liu2008} & Isolation Forest & General tabular data & Benchmark datasets & Not evaluated on web request logs \\
-
 Chua et al.~(2024)~\cite{chua2024} & Isolation Forest & Web traffic logs & Single dataset & Single detection view, no behaviour model \\
-
 Sch\"{o}lkopf et al.~(2001)~\cite{scholkopf2001} & One-Class SVM & General/high-dim.\ data & Method paper & Not evaluated on web request logs \\
-
 Breiman~(2001)~\cite{breiman2001} & Random Forest & General tabular data & Benchmark datasets & Supervised; needs attack labels, not web-log specific \\
-
 Pan et al.~(2019)~\cite{pan2019} & Stacked denoising autoencoder & HTTP requests & Single dataset & Scores single requests only, no session view \\
-
 An and Cho~(2015)~\cite{ancho2015} & VAE reconstruction probability & General/tabular data & Benchmark datasets & Not evaluated on web or session data \\
-
 Tiwari et al.~(2024)~\cite{tiwari2024} & CNN vs.\ Transformer classifier & HTTP requests & Single dataset & Content-only, no session or fusion view \\
-
 Zhou et al.~(2025)~\cite{zhou2025} & Char-level LSTM/CNN-BiLSTM ensemble & HTTP requests & Two datasets & No session view, no threshold-transfer test \\
-
 Du et al.~(2017)~\cite{du2017} & LSTM (DeepLog) & System logs & Single dataset & Not web-request specific \\
-
 Nedelkoski et al.~(2020)~\cite{nedelkoski2020} & Self-attention classifier & Unstructured logs & Single dataset & No cross-dataset test reported \\
-
 Guo et al.~(2021)~\cite{guo2021} & Transformer (LogBERT) & System logs & Multiple single datasets & Not web-request specific, no cross-dataset test \\
-
 Jagat et al.~(2024)~\cite{jagat2024} & Variational LSTM autoencoder + deviation network & HTTP weblogs & Single dataset & No content-based branch, single dataset \\
-
 Kamal and Mashaly~(2025)~\cite{kamal2025} & Hybrid deep learning IDS & Network traffic & Single dataset & Single dataset, not web-log specific \\
-
 Shiravi et al.~(2012)~\cite{shiravi2012} & Benchmark dataset design & Network traffic & Dataset study & Dataset paper, no detection model \\
-
 Cantone et al.~(2024)~\cite{cantone2024} & Multiple classical ML models & Network traffic & Cross-dataset & Not applied to web-log or hybrid deep models \\
-
 \bottomrule
 \end{tabularx}
+\renewcommand{\arraystretch}{1}
 \end{adjustwidth}
 \end{table}
 \unskip
@@ -575,7 +543,7 @@ Hochreiter, S.; Schmidhuber, J. Long Short-Term Memory. \emph{Neural Comput.} \t
 Nedelkoski, S.; Bogatinovski, J.; Acker, A.; Cardoso, J.; Kao, O. Self-Attentive Classification-Based Anomaly Detection in Unstructured Logs. In Proceedings of the 2020 IEEE International Conference on Data Mining (ICDM), Sorrento, Italy, 17--20 November 2020; pp. 1196--1201. \url{https://arxiv.org/abs/2008.09340}.
 
 \bibitem[Du et al.(2017)]{du2017}
-Du, M.; Li, F.; Zheng, G.; Srikumar, V. DeepLog: Anomaly Detection and Diagnosis from System Logs through Deep Learning. In Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security (CCS), Dallas, TX, USA, 30 October--3 November 2017; pp. 1285--1298.
+Du, M.; Li, F.; Zheng, G.; Srikumar, V. DeepLog: Anomaly Detection and Diagnosis from System Logs through Deep Learning. In Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security (CCS), Dallas, TX, USA, 30 October--3 November 2017; pp. 1285--1298. \url{https://doi.org/10.1145/3133956.3134015}.
 
 \bibitem[Kingma and Welling(2014)]{kingma2014}
 Kingma, D.P.; Welling, M. Auto-Encoding Variational Bayes. In Proceedings of the 2nd International Conference on Learning Representations (ICLR), Banff, AB, Canada, 14--16 April 2014. \url{https://arxiv.org/abs/1312.6114}.

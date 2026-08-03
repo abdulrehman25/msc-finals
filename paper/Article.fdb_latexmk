@@ -1,13 +1,13 @@
 # Fdb version 4
-["pdflatex"] 1785561334.35268 "Article.tex" "Article.pdf" "Article" 1785561337.78288 0
+["pdflatex"] 1785777491.29199 "Article.tex" "Article.pdf" "Article" 1785777499.13694 0
   "../artifacts/paper/figures/baseline_auc_bar.png" 1785078004.83644 61308 af69169da17a75298fb1a59983abcbbe ""
   "../artifacts/paper/figures/fusion_sweep_line.png" 1785078004.37527 53486 3953e4d32084d43b2fd047047c541cc3 ""
   "../artifacts/paper/figures/heatmap_auc.png" 1785067853.19693 69601 8d21358817b7f639d4e58c820e7fe002 ""
   "../artifacts/paper/figures/session_fix_bar.png" 1785078003.99922 32463 a102d1ba82f070a3b539410626f57e6e ""
   "../artifacts/paper/figures/threshold_transfer_bar.png" 1785078004.61545 48266 dd84946466c7806f87fdf0a16900162b ""
-  "Article.aux" 1785561337.1136 13163 fdba9bd6bd90846123ff089b44c0f19f "pdflatex"
-  "Article.out" 1785561337.11519 5499 360711fb665f0601a36de452a3fc58a3 "pdflatex"
-  "Article.tex" 1785561326.33449 79970 d12d2c0f6c4536a1985289ab0f829367 ""
+  "Article.aux" 1785777498.50783 13163 3b771727e95b4468ee24d5741938b272 "pdflatex"
+  "Article.out" 1785777498.51009 5499 360711fb665f0601a36de452a3fc58a3 "pdflatex"
+  "Article.tex" 1785777482.08072 79059 3211d0dd77ddb3be2a56ee8075071eb6 ""
   "C:/Users/Nouman/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1783676094.45099 84158 d77284a6843bde1e4b9764f09fb2e89e ""
   "C:/Users/Nouman/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi375/ecss0800.pk" 1776217108.82192 10028 357a633d94d07086b9502b13d7385ac0 ""
   "C:/Users/Nouman/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ectt1000.pk" 1776903347.08606 20028 56f81b6c65c206926edf711c1a3df8a8 ""
