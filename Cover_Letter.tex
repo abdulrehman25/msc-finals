@@ -1,0 +1,80 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{hyperref}
+
+\pagestyle{empty}
+\setstretch{1.15}
+
+\begin{document}
+
+\noindent
+Abdul Rehman \\
+Department of Computing and Cybersecurity \\
+University of the West of Scotland, London Campus \\
+London E14 2BA, United Kingdom \\
+Email: \href{mailto:b01753459@studentmail.uws.ac.uk}{b01753459@studentmail.uws.ac.uk}
+
+\vspace{2\baselineskip}
+
+4th August 2026
+
+\vspace{2\baselineskip}
+
+\noindent
+Editor-in-Chief \\
+Future Internet \\
+MDPI
+
+\vspace{2\baselineskip}
+
+Dear Editor-in-Chief,
+
+\vspace{\baselineskip}
+
+On behalf of my co-authors, I am pleased to submit our manuscript entitled ``Content- and Session-Aware Anomaly Detection for Web Server Logs Using a Fused Autoencoder and Variational LSTM Framework: A Cross-Dataset Evaluation'' for consideration for publication in Future Internet.
+
+Web server logs hold a lot of security-relevant information, but most anomaly detection studies score single requests in isolation, miss attacks that only appear across a sequence of requests, and are validated on only one dataset, which risks overstating how well the method will generalise once deployed.
+
+To address this, we present a hybrid framework that fuses a content-based autoencoder, which scores individual HTTP requests, with a session-based variational LSTM autoencoder, which scores genuine per-client request sequences. We evaluate the framework across eight datasets spanning three log formats, including the public CSIC 2010 HTTP dataset, under both within-dataset and cross-dataset threshold-transfer protocols.
+
+The main contributions of this work include:
+
+\vspace{0.5\baselineskip}
+
+\noindent
+1. A hybrid anomaly detection framework that combines a request-level autoencoder with a session-level variational LSTM autoencoder through score-level fusion, so the system can catch both unusual single requests and unusual patterns of behaviour over time.
+
+\noindent
+2. Identification and correction of a session-construction fault in prior work, where session windows were built without checking which client sent each request. Grouping requests by client before building windows raises the session branch's AUC on CSIC 2010 from 0.63 to 0.97.
+
+\noindent
+3. An honest account of when a true session-based model can and cannot contribute: on datasets where each client sends only one or two requests, the session branch produces no score at all, which we report as a property of the data rather than a shortcoming of the method.
+
+\noindent
+4. A cross-dataset threshold-transfer evaluation, in which a decision threshold calibrated once on CSIC 2010's benign traffic is applied unchanged to three other datasets, raising fused F1 by five- to six-fold compared with a threshold tuned separately on each target dataset.
+
+\noindent
+5. A comparison against supervised (Random Forest) and unsupervised (Isolation Forest, One-Class SVM) baselines, together with a latency benchmark showing the framework runs fast enough for near-real-time use.
+
+\vspace{\baselineskip}
+
+We believe this work aligns well with the aims and scope of Future Internet. It offers a practical, reproducible framework for web server log anomaly detection, together with two findings that we believe are of broader interest to the community: that session structure in the data determines whether behaviour-based modelling can help at all, and that how a detection threshold is calibrated can matter more than which dataset it is tested on.
+
+We confirm that this manuscript is original, has not been published previously, and is not under consideration for publication elsewhere. All authors have approved the manuscript and agree with its submission to Future Internet.
+
+Thank you for your time and consideration. We would be grateful for the opportunity to have our work reviewed and look forward to your response.
+
+\vspace{2\baselineskip}
+
+Yours sincerely,
+
+\vspace{3\baselineskip}
+
+Abdul Rehman \\
+Department of Computing and Cybersecurity \\
+University of the West of Scotland, London Campus \\
+On behalf of all co-authors (Mouhammad Nouman, Muhsin Hassanu)
+
+\end{document}
+

@@ -53,6 +53,29 @@
 %\dateretracted{} % For retracted papers: "Retracted: XXX" date in the original paper.
 \hreflink{https://doi.org/} % If needed use \linebreak
 %\doinum{}
+% The MDPI class prints the DOI in the regular footer and in the first-page
+% `plain` page style. Blank both here while the paper still has no assigned DOI.
+\rfoot{}
+\makeatletter
+\fancypagestyle{plain}{%
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead{\null\vspace{8pt}}
+\fancyfoot[L]{%
+\fontsize{8}{8}\selectfont
+\ifthenelse{\equal{\@status}{submit}}{%
+Version {\@ \today} submitted to {\em \journalname}%
+}{%
+{\em\journalname\ }{\bfseries\@pubyear}, {\em \@pubvolume}, %
+\ifthenelse{\equal{\@continuouspages}{\@empty}}{%
+\@articlenumber %
+}{%
+\@firstpage\ifnumcomp{\getpagerefnumber{LastPage}}{=}{\@firstpage}{}{--\pageref*{LastPage}} %
+}%
+}%
+}
+\fancyfoot[R]{}
+}
+\makeatother
 %\pdfoutput=1 % Uncommented for upload to arXiv.org
 %\CorrStatement{yes}  % For updates
 %\longauthorlist{yes} % For many authors that exceed the left citation part

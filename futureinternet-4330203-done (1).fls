@@ -1,0 +1,6 @@
+PWD /Users/abdul/projects/personal/msc-finals
+INPUT /usr/local/texlive/2026/texmf.cnf
+INPUT /usr/local/texlive/2026/texmf-dist/web2c/texmf.cnf
+INPUT /usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT futureinternet-4330203-done (1).tex
+OUTPUT futureinternet-4330203-done (1).log
