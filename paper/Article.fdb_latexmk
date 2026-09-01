@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1785871195.0282 "Article.tex" "Article.pdf" "Article" 1785871198.22538 0
+["pdflatex"] 1788294996.85737 "Article.tex" "Article.pdf" "Article" 1788294999.73484 0
   "../artifacts/paper/figures/baseline_auc_bar.png" 1785111302.83145 61308 af69169da17a75298fb1a59983abcbbe ""
   "../artifacts/paper/figures/fusion_sweep_line.png" 1785111302.83228 53486 3953e4d32084d43b2fd047047c541cc3 ""
   "../artifacts/paper/figures/heatmap_auc.png" 1784478400.2208 69601 8d21358817b7f639d4e58c820e7fe002 ""
@@ -248,9 +248,9 @@
   "/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1784591558 5573038 b99aad5e4898a9034e953632f940512b ""
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1784591505 3636771 1597964f0540487c86f4b406efe96902 ""
   "/usr/local/texlive/2026/texmf.cnf" 1774209515 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "Article.aux" 1785871198.02791 13163 3b771727e95b4468ee24d5741938b272 "pdflatex"
-  "Article.out" 1785871198.02935 5499 360711fb665f0601a36de452a3fc58a3 "pdflatex"
-  "Article.tex" 1785871146.90899 78921 db8614c517d92634e13611b289096ac7 ""
+  "Article.aux" 1788294999.59665 14140 b2b2e7edee4e5b21e04b7e2e480aaee9 "pdflatex"
+  "Article.out" 1788294999.59814 5499 360711fb665f0601a36de452a3fc58a3 "pdflatex"
+  "Article.tex" 1788294976.74957 82951 c7445def1be4f894f6ad5d3b6bdbf7c8 ""
   "Definitions/journalnames.tex" 1785111302.84585 111108 c1a5fb5ba41ed68230ba81224ea841ce ""
   "Definitions/logo-mdpi.eps" 1785111302.8503 563678 6065ff936803124b091b05458e057116 ""
   "Definitions/mdpi.cls" 1785111302.85491 62377 023962f9e1569062d2fadcefa91a98a7 ""
