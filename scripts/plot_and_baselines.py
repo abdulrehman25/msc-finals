@@ -262,6 +262,12 @@ def _rf_train_and_plot(X: np.ndarray, y: np.ndarray, n_trees: int, tag: str):
     metrics = {"auc": float(auc_roc), "prauc": float(pr_auc), "f1": float(F1),
                "precision": float(P), "recall": float(R), "fpr": float(fpr_val)}
     (EVAL_DIR / f"baseline_metrics_rf_{tag}.json").write_text(json.dumps(metrics, indent=2))
+
+    # Save per-row held-out test scores/labels so downstream analyses (e.g. bootstrap
+    # confidence intervals) can be computed without retraining.
+    score_df = pd.DataFrame({"y_true": yte, "score": prob})
+    score_df.to_csv(EVAL_DIR / f"baseline_scores_rf_{tag}.csv", index=False)
+
     return metrics
 
 def _unsupervised_train_and_plot(X: np.ndarray, y: np.ndarray, tag: str, kind: str, max_train_benign: Optional[int] = None):
@@ -355,6 +361,12 @@ def _unsupervised_train_and_plot(X: np.ndarray, y: np.ndarray, tag: str, kind: s
                "precision": float(P), "recall": float(R), "fpr": float(fpr_val),
                "n_train_benign": int(len(Xtr_benign)), "n_train_total": int(len(Xtr))}
     (EVAL_DIR / f"baseline_metrics_{kind}_{tag}.json").write_text(json.dumps(metrics, indent=2))
+
+    # Save per-row held-out test scores/labels so downstream analyses (e.g. bootstrap
+    # confidence intervals) can be computed without retraining.
+    score_df = pd.DataFrame({"y_true": yte, "score": score_test})
+    score_df.to_csv(EVAL_DIR / f"baseline_scores_{kind}_{tag}.csv", index=False)
+
     return metrics
 
 # -------------------- modes --------------------
