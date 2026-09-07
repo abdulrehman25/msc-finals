@@ -2,10 +2,12 @@
   "n_lines": 2000,
   "labels_used": true,
   "threshold_percentile": 95.0,
+  "fusion_norm": "none",
   "thresholds": {
-    "content": 5.819892930984497,
-    "session": 3.2004234790802,
-    "fused": 4.384450519084931
+    "content": 24.33533458709717,
+    "session": 2.6725869178771973,
+    "fused": 13.40036752820015,
+    "fused_norm": 13.40036752820015
   },
   "metrics": {
     "content": {
@@ -19,13 +21,17 @@
       "fn": 0,
       "tp": 0,
       "fpr": 0.05,
-      "threshold": 5.819892930984497,
+      "threshold": 24.33533458709717,
       "alert_rate": 0.05,
       "f1_at_1pct": 0.0,
-      "thr_at_1pct": 5.825646653175354,
+      "thr_at_1pct": 24.340389289855956,
       "f1_at_0_1pct": 0.0,
-      "thr_at_0_1pct": 5.831002181529999,
-      "alerts_per_million": 50000.0
+      "thr_at_0_1pct": 24.3510786857605,
+      "alerts_per_million": 50000.0,
+      "operating_points": {
+        "recall_at_fpr": {},
+        "fpr_at_recall": {}
+      }
     },
     "session": {
       "auc": null,
@@ -33,18 +39,22 @@
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
-      "tn": 1882,
+      "tn": 1901,
       "fp": 99,
       "fn": 0,
       "tp": 0,
-      "fpr": 0.049974760222110046,
-      "threshold": 3.2004234790802,
-      "alert_rate": 0.049974760222110046,
+      "fpr": 0.0495,
+      "threshold": 2.6725869178771973,
+      "alert_rate": 0.0495,
       "f1_at_1pct": 0.0,
-      "thr_at_1pct": 3.2669793128967286,
+      "thr_at_1pct": 2.7307777762413026,
       "f1_at_0_1pct": 0.0,
-      "thr_at_0_1pct": 3.3388887596130394,
-      "alerts_per_million": 49974.760222110046
+      "thr_at_0_1pct": 2.7950628693103803,
+      "alerts_per_million": 50000.0,
+      "operating_points": {
+        "recall_at_fpr": {},
+        "fpr_at_recall": {}
+      }
     },
     "fused": {
       "auc": null,
@@ -57,13 +67,17 @@
       "fn": 0,
       "tp": 0,
       "fpr": 0.05,
-      "threshold": 4.384450519084931,
+      "threshold": 13.40036752820015,
       "alert_rate": 0.05,
       "f1_at_1pct": 0.0,
-      "thr_at_1pct": 4.44353721499443,
+      "thr_at_1pct": 13.451035982370376,
       "f1_at_0_1pct": 0.0,
-      "thr_at_0_1pct": 4.5285817394259205,
-      "alerts_per_million": 50000.0
+      "thr_at_0_1pct": 13.534200238945301,
+      "alerts_per_million": 50000.0,
+      "operating_points": {
+        "recall_at_fpr": {},
+        "fpr_at_recall": {}
+      }
     }
   }
 }

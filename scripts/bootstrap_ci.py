@@ -26,7 +26,7 @@ SEED = 42
 
 # (label for output, predictions csv, labels sidecar)
 OWN_BRANCH_SOURCES = {
-    "csic_eval": (ROOT / "artifacts/eval_v3/predictions_csic_heldout_eval.csv",
+    "csic_eval": (EVAL_DIR / "predictions_csic_eval.csv",
                   ROOT / "data/csic/csic_heldout_eval.log.labels.txt"),
     "access_eval_mix_2000": (EVAL_DIR / "predictions_access_eval_mix_2000.csv",
                               ROOT / "data/mixed/access_eval_mix_2000.log.labels.txt"),

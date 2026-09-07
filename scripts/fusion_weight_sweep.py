@@ -27,7 +27,7 @@ CANONICAL_STEMS = [
 
 # stem -> label sidecar path
 LABELS = {
-    "csic_eval": "data/csic/csic_eval.log.labels.txt",
+    "csic_eval": "data/csic/csic_heldout_eval.log.labels.txt",
     "access_eval_mix_2000": "data/mixed/access_eval_mix_2000.log.labels.txt",
     "access_eval_small_500": "data/mixed/access_eval_small_500.log.labels.txt",
     "nginx_json_eval_800": "data/mixed/nginx_json_eval_800.log.labels.txt",
