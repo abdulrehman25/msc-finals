@@ -25,6 +25,7 @@ def main():
     ap.add_argument("--bad-lines-out", default=None, help="Write unparsable lines here")
     ap.add_argument("--percentile", type=float, default=95.0, help="Threshold percentile (e.g., 95)")
     ap.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    ap.add_argument("--outdir", default="artifacts/content", help="Where to save trained artifacts")
     args = ap.parse_args()
 
     torch.manual_seed(args.seed)
@@ -61,17 +62,28 @@ def main():
         recon = model(Xt).cpu().numpy()
     errs = np.mean((Xs - recon) ** 2, axis=1)
     thr = float(np.percentile(errs, args.percentile))
+    pcts = [50, 75, 90, 95, 97, 99]
+    train_percentiles = {str(p): float(np.percentile(errs, p)) for p in pcts}
 
     # --- Save artifacts ---
-    os.makedirs("artifacts/content", exist_ok=True)
-    torch.save(model.state_dict(), "artifacts/content/model.pt")
-    joblib.dump(scaler, "artifacts/content/scaler.joblib")
+    os.makedirs(args.outdir, exist_ok=True)
+    torch.save(model.state_dict(), os.path.join(args.outdir, "model.pt"))
+    joblib.dump(scaler, os.path.join(args.outdir, "scaler.joblib"))
     json.dump(
-        {"input_dim": int(input_dim), "threshold": thr, "percentile": float(args.percentile)},
-        open("artifacts/content/config.json", "w"),
+        {
+            "input_dim": int(input_dim),
+            "threshold": thr,
+            "percentile": float(args.percentile),
+            "trained_on": [args.log],
+            "n_train_rows": int(len(X)),
+            "train_score_percentiles": train_percentiles,
+            "train_score_mean": float(np.mean(errs)),
+            "train_score_std": float(np.std(errs)),
+        },
+        open(os.path.join(args.outdir, "config.json"), "w"),
         indent=2,
     )
-    print(f"Saved content AE artifacts. threshold={thr:.6f} (p{args.percentile})")
+    print(f"Saved content AE artifacts to {args.outdir}. threshold={thr:.6f} (p{args.percentile})")
 
 
 if __name__ == "__main__":

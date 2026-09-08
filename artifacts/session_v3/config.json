@@ -8,5 +8,16 @@
   "trained_on": [
     "data/raw/access_super_long_session_2000.log",
     "data/csic/csic_train_benign.log"
-  ]
+  ],
+  "train_score_percentiles": {
+    "50": 0.33552002906799316,
+    "75": 0.3804236650466919,
+    "90": 0.4026263356208801,
+    "95": 2.3811278343200684,
+    "97": 2.4916152954101562,
+    "99": 2.6009914875030518
+  },
+  "train_score_mean": 0.45430445671081543,
+  "train_score_std": 0.5350722074508667,
+  "n_train_rows": 6154
 }

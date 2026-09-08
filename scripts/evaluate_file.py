@@ -19,17 +19,24 @@ from sklearn.metrics import roc_auc_score, average_precision_score, f1_score, pr
 from src.featurization.features import line_to_vector
 from src.models.content_autoencoder import ContentAE
 from src.models.session_lstm_vae import SessionLSTMVAE
-from src.pipeline.metrics_extra import compute_low_alert_metrics
+from src.pipeline.metrics_extra import compute_low_alert_metrics, compute_operating_points
 
-def load_content_bundle():
-    p = Path("artifacts/content")
+def _norm_fields(cfg):
+    return {
+        "train_percentiles": cfg.get("train_score_percentiles"),
+        "train_mean": cfg.get("train_score_mean"),
+        "train_std": cfg.get("train_score_std"),
+    }
+
+def load_content_bundle(content_dir="artifacts/content_v2"):
+    p = Path(content_dir)
     if not p.exists(): return None
     scaler = joblib.load(p/"scaler.joblib")
     cfg = json.load(open(p/"config.json"))
     model = ContentAE(input_dim=cfg["input_dim"])
     model.load_state_dict(torch.load(p/"model.pt", map_location="cpu"))
     model.eval()
-    return {"scaler":scaler, "model":model, "thr":float(cfg["threshold"])}
+    return {"scaler":scaler, "model":model, "thr":float(cfg["threshold"]), **_norm_fields(cfg)}
 
 def load_session_bundle(session_dir="artifacts/session"):
     p = Path(session_dir)
@@ -39,7 +46,31 @@ def load_session_bundle(session_dir="artifacts/session"):
     model = SessionLSTMVAE(input_dim=cfg["input_dim"])
     model.load_state_dict(torch.load(p/"model.pt", map_location="cpu"))
     model.eval()
-    return {"scaler":scaler, "model":model, "thr":float(cfg["threshold"]), "window":int(cfg.get("window",20))}
+    return {"scaler":scaler, "model":model, "thr":float(cfg["threshold"]), "window":int(cfg.get("window",20)),
+            **_norm_fields(cfg)}
+
+def normalize_score(score, bundle, method):
+    """Map a raw reconstruction-error score onto a comparable scale before
+    fusion, using only statistics of the branch's own training distribution
+    (never the eval set's), so attack-heavy eval sets can't bias the mapping
+    -- the same pitfall the threshold-transfer analysis found for thresholds."""
+    if score is None or bundle is None or method == "none":
+        return score
+    if method == "percentile":
+        pcts = bundle.get("train_percentiles")
+        if not pcts:
+            thr = bundle.get("thr")
+            return score / thr if thr else score
+        keys = sorted(pcts.keys(), key=lambda k: float(k))
+        score_vals = [pcts[k] for k in keys]
+        frac_vals = [float(k) / 100.0 for k in keys]
+        return float(np.interp(score, score_vals, frac_vals))
+    if method == "zscore":
+        mean, std = bundle.get("train_mean"), bundle.get("train_std")
+        if mean is None or std is None:
+            return score
+        return (score - mean) / std if std else (score - mean)
+    raise ValueError(f"unknown fusion-norm: {method}")
 
 def score_content(bundle, vec):
     if bundle is None or vec is None: return None
@@ -168,6 +199,7 @@ def compute_metrics(y_true, y_score, thr):
         "alert_rate": alert_rate,
     }
     result.update(compute_low_alert_metrics(y_true, y_score))
+    result["operating_points"] = compute_operating_points(y_true, y_score)
     return result
 
 def _fmt4(x):
@@ -188,18 +220,29 @@ def main():
     ap.add_argument("--outdir", default="artifacts/eval", help="Where to write predictions/metrics")
     ap.add_argument("--fuse-weights", default="0.5,0.5", help="content,session weights for fusion")
     ap.add_argument("--thr-percentile", type=float, default=95.0, help="percentile threshold fallback")
-    ap.add_argument("--session-dir", default="artifacts/session_v2",
+    ap.add_argument("--content-dir", default="artifacts/content_v2",
+                     help="Where the content-branch model bundle lives. Default is the methodologically-"
+                          "corrected v2 model (trained on normal-only NASA HTTP rows); pass 'artifacts/content' "
+                          "to reproduce legacy numbers.")
+    ap.add_argument("--session-dir", default="artifacts/session_v3",
                      help="Where the session-branch model bundle lives. Default is the methodologically-"
-                          "corrected v2 model (real (ip,ua) sessions); pass 'artifacts/session' + "
-                          "--session-mode naive to reproduce legacy v1 numbers.")
+                          "corrected v3 model (real (ip,ua) sessions, trained on the CSIC held-out split); "
+                          "pass 'artifacts/session' + --session-mode naive to reproduce legacy v1 numbers.")
     ap.add_argument("--session-mode", choices=["naive", "stateful"], default="stateful",
                      help="'stateful' = real per-(ip,ua) rolling buffer (matches training/serving); "
                           "'naive' = repeat-one-line-to-window (old behavior, for reproducing legacy numbers)")
+    ap.add_argument("--fusion-norm", choices=["none", "percentile", "zscore"], default="none",
+                     help="Normalize each branch's score against its own training-score distribution "
+                          "before fusing, so branches on different numeric scales don't let one branch "
+                          "dominate the weighted average. 'none' reproduces legacy raw-score fusion.")
+    ap.add_argument("--out-stem", default=None,
+                     help="Override the output filename stem (default: derived from --log). Used to write "
+                          "e.g. predictions_csic_eval.csv from a held-out log file that has a different name.")
     args = ap.parse_args()
 
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
-    cb = load_content_bundle()
+    cb = load_content_bundle(args.content_dir)
     sb = load_session_bundle(args.session_dir)
     if cb is None and sb is None:
         raise SystemExit("No trained models found under artifacts/. Train first.")
@@ -208,7 +251,7 @@ def main():
 
     # Score all lines
     session_buffers = {}
-    lines, s_content, s_session, fused = [], [], [], []
+    lines, s_content, s_session, fused, fused_norm = [], [], [], [], []
     with open(args.log, encoding="utf-8", errors="ignore") as f:
         for ln in f:
             s = ln.strip()
@@ -226,11 +269,19 @@ def main():
                 continue
             s_content.append(sc if sc is not None else np.nan)
             s_session.append(ss if ss is not None else np.nan)
-            # fusion over available scores
+            # raw fusion (legacy, unweighted-scale average)
             num, den = 0.0, 0.0
             if sc is not None: num += w_content*sc; den += w_content
             if ss is not None: num += w_session*ss; den += w_session
             fused.append(num/den if den>0 else (sc if sc is not None else ss))
+            # normalized fusion: each branch mapped onto its own training-score
+            # scale first, so a wide-scale branch can't numerically dominate
+            scn = normalize_score(sc, cb, args.fusion_norm) if sc is not None else None
+            ssn = normalize_score(ss, sb, args.fusion_norm) if ss is not None else None
+            numn, denn = 0.0, 0.0
+            if scn is not None: numn += w_content*scn; denn += w_content
+            if ssn is not None: numn += w_session*ssn; denn += w_session
+            fused_norm.append(numn/denn if denn>0 else (scn if scn is not None else ssn))
             lines.append(s)
 
     n = len(lines)
@@ -242,24 +293,28 @@ def main():
     sc_arr = np.array(s_content)
     ss_arr = np.array(s_session)
     fu_arr = np.array(fused)
+    fun_arr = np.array(fused_norm)
 
     # Replace NaNs where a branch is missing (won’t be used in metrics if NaNs and no labels)
     sc_valid = sc_arr[~np.isnan(sc_arr)]
     ss_valid = ss_arr[~np.isnan(ss_arr)]
     fu_valid = fu_arr[~np.isnan(fu_arr)]
+    fun_valid = fun_arr[~np.isnan(fun_arr)]
 
     thr_c = choose_threshold(sc_valid, p=args.thr_percentile) if sc_valid.size>0 else None
     thr_s = choose_threshold(ss_valid, p=args.thr_percentile) if ss_valid.size>0 else None
     thr_f = choose_threshold(fu_valid, p=args.thr_percentile) if fu_valid.size>0 else None
+    thr_fn = choose_threshold(fun_valid, p=args.thr_percentile) if fun_valid.size>0 else None
 
     # Save predictions CSV
-    pred_path = Path(args.outdir)/("predictions_" + Path(args.log).stem + ".csv")
+    out_stem = args.out_stem or Path(args.log).stem
+    pred_path = Path(args.outdir)/("predictions_" + out_stem + ".csv")
     with open(pred_path, "w", encoding="utf-8") as out:
-        out.write("score_content,score_session,score_fused,line\n")
-        for a,b,c,l in zip(s_content, s_session, fused, lines):
-            out.write(f"{'' if math.isnan(a) else a},{'' if math.isnan(b) else b},{c},{l}\n")
+        out.write("score_content,score_session,score_fused,score_fused_norm,line\n")
+        for a,b,c,d,l in zip(s_content, s_session, fused, fused_norm, lines):
+            out.write(f"{'' if math.isnan(a) else a},{'' if math.isnan(b) else b},{c},{d},{l}\n")
 
-    # If labels provided: compute metrics per-branch + fused
+    # If labels provided: compute metrics per-branch + fused (raw and normalized)
     metrics = {}
     if y_true is not None:
         if thr_c is not None:
@@ -268,14 +323,17 @@ def main():
             metrics["session"] = compute_metrics(y_true, np.nan_to_num(ss_arr, nan=-1e9), thr_s)
         if thr_f is not None:
             metrics["fused"] = compute_metrics(y_true, np.nan_to_num(fu_arr, nan=-1e9), thr_f)
+        if args.fusion_norm != "none" and thr_fn is not None:
+            metrics["fused_norm"] = compute_metrics(y_true, np.nan_to_num(fun_arr, nan=-1e9), thr_fn)
 
     # Write metrics.json
-    mpath = Path(args.outdir)/("metrics_" + Path(args.log).stem + ".json")
+    mpath = Path(args.outdir)/("metrics_" + out_stem + ".json")
     json.dump({
         "n_lines": n,
         "labels_used": y_true is not None,
         "threshold_percentile": args.thr_percentile,
-        "thresholds": {"content":thr_c, "session":thr_s, "fused":thr_f},
+        "fusion_norm": args.fusion_norm,
+        "thresholds": {"content":thr_c, "session":thr_s, "fused":thr_f, "fused_norm":thr_fn},
         "metrics": metrics
     }, open(mpath,"w"), indent=2)
 

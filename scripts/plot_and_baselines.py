@@ -34,6 +34,7 @@ from sklearn.svm import OneClassSVM
 # project imports (editable install recommended)
 from featurization.features import line_to_vector
 from featurization.parse import parse_line
+from pipeline.metrics_extra import compute_operating_points
 
 EVAL_DIR = Path("artifacts/eval")
 PLOTS_DIR = EVAL_DIR / "plots"
@@ -260,7 +261,8 @@ def _rf_train_and_plot(X: np.ndarray, y: np.ndarray, n_trees: int, tag: str):
     print(f"[RF] {tag}: tn={tn} fp={fp} fn={fn} tp={tp} | AUC={auc_roc:.4f} PR-AUC={pr_auc:.4f} F1={F1:.4f} P={P:.4f} R={R:.4f}")
 
     metrics = {"auc": float(auc_roc), "prauc": float(pr_auc), "f1": float(F1),
-               "precision": float(P), "recall": float(R), "fpr": float(fpr_val)}
+               "precision": float(P), "recall": float(R), "fpr": float(fpr_val),
+               "operating_points": compute_operating_points(yte, prob)}
     (EVAL_DIR / f"baseline_metrics_rf_{tag}.json").write_text(json.dumps(metrics, indent=2))
 
     # Save per-row held-out test scores/labels so downstream analyses (e.g. bootstrap
@@ -359,7 +361,8 @@ def _unsupervised_train_and_plot(X: np.ndarray, y: np.ndarray, tag: str, kind: s
 
     metrics = {"auc": float(auc_roc), "prauc": float(pr_auc), "f1": float(F1),
                "precision": float(P), "recall": float(R), "fpr": float(fpr_val),
-               "n_train_benign": int(len(Xtr_benign)), "n_train_total": int(len(Xtr))}
+               "n_train_benign": int(len(Xtr_benign)), "n_train_total": int(len(Xtr)),
+               "operating_points": compute_operating_points(yte, score_test)}
     (EVAL_DIR / f"baseline_metrics_{kind}_{tag}.json").write_text(json.dumps(metrics, indent=2))
 
     # Save per-row held-out test scores/labels so downstream analyses (e.g. bootstrap
@@ -569,21 +572,29 @@ def do_baseline_comparison():
         for branch in ["content", "session", "fused"]:
             sub = df[(df["dataset"] == stem) & (df["branch"] == branch)]
             row[f"{branch}_auc"] = sub["auc"].iloc[0] if not sub.empty else None
+            row[f"{branch}_prauc"] = sub["prauc"].iloc[0] if not sub.empty and "prauc" in sub else None
             row[f"{branch}_f1"] = sub["f1"].iloc[0] if not sub.empty else None
         for kind in ["rf", "iforest", "ocsvm"]:
             bpath = EVAL_DIR / f"baseline_metrics_{kind}_{stem}.json"
             if bpath.exists():
                 bm = json.loads(bpath.read_text())
                 row[f"{kind}_auc"] = bm.get("auc")
+                row[f"{kind}_prauc"] = bm.get("prauc")
                 row[f"{kind}_f1"] = bm.get("f1")
                 row[f"{kind}_fpr"] = bm.get("fpr")
+                op = bm.get("operating_points", {})
+                row[f"{kind}_recall_at_fpr05"] = op.get("recall_at_fpr", {}).get("0.05")
+                row[f"{kind}_fpr_at_recall05"] = op.get("fpr_at_recall", {}).get("0.5")
             else:
-                row[f"{kind}_auc"] = row[f"{kind}_f1"] = row[f"{kind}_fpr"] = None
+                row[f"{kind}_auc"] = row[f"{kind}_prauc"] = row[f"{kind}_f1"] = row[f"{kind}_fpr"] = None
+                row[f"{kind}_recall_at_fpr05"] = row[f"{kind}_fpr_at_recall05"] = None
         rows.append(row)
 
-    cols = (["dataset", "content_auc", "content_f1", "session_auc", "session_f1",
-             "fused_auc", "fused_f1"] +
-            [f"{k}_{m}" for k in ["rf", "iforest", "ocsvm"] for m in ["auc", "f1", "fpr"]])
+    cols = (["dataset", "content_auc", "content_prauc", "content_f1",
+             "session_auc", "session_prauc", "session_f1",
+             "fused_auc", "fused_prauc", "fused_f1"] +
+            [f"{k}_{m}" for k in ["rf", "iforest", "ocsvm"]
+             for m in ["auc", "prauc", "f1", "fpr", "recall_at_fpr05", "fpr_at_recall05"]])
     out_csv = EVAL_DIR / "baseline_comparison.csv"
     with open(out_csv, "w") as f:
         f.write(",".join(cols) + "\n")

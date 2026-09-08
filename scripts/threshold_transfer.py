@@ -2,10 +2,11 @@
 Cross-dataset threshold-transfer experiment (mirrors the peer paper's
 train-on-source / freeze-threshold / apply-unchanged-to-targets design).
 
-Source domain: CSIC 2010 (data/csic/csic_eval) - the only publicly-citable
-benchmark among our datasets. Its benign-only rows' score distribution
-(from the already-cached predictions_csic_eval.csv) defines a FIXED
-threshold per branch, which is then applied UNCHANGED (no recalibration)
+Source domain: CSIC 2010, held-out split (data/csic/csic_heldout_eval.log) -
+the only publicly-citable benchmark among our datasets. Its benign-only rows'
+score distribution (from the already-cached predictions_csic_eval.csv, which
+is generated from the held-out log so the calibration set is disjoint from
+training) defines a FIXED threshold per branch, applied UNCHANGED (no recalibration)
 to three target datasets: Access Eval Mix 2000, Access Eval Small 500,
 and Nginx JSON Eval 800.
 
@@ -33,7 +34,7 @@ from scripts.evaluate_file import compute_metrics, load_labels_sidecar
 EVAL_DIR = ROOT / "artifacts" / "eval"
 
 SOURCE_STEM = "csic_eval"
-SOURCE_LABELS = "data/csic/csic_eval.log.labels.txt"
+SOURCE_LABELS = "data/csic/csic_heldout_eval.log.labels.txt"
 
 TARGETS = {
     "access_eval_mix_2000": "data/mixed/access_eval_mix_2000.log.labels.txt",
