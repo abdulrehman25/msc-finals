@@ -76,7 +76,7 @@ Version {\@ \today} submitted to {\em \journalname}%
 
 \corres{Correspondence: b01753459@studentmail.uws.ac.uk (A.R.); muhsin.hassanu@uws.ac.uk (M.H.)}
 
-\abstract{Rule-based inspection of web server logs cannot detect attacks it has not already been told to look for, and most anomaly-detection studies validate their methods on a single dataset, which risks overstating how well a method generalises to new traffic. This paper presents a hybrid framework that fuses a content-based autoencoder, which scores individual HTTP requests, with a session-based variational LSTM autoencoder, which scores per-client request sequences. The framework is evaluated across eight datasets spanning three log formats, including the public CSIC~2010 HTTP dataset, under both within-dataset and cross-dataset threshold-transfer protocols. Correcting a session-construction fault that had mixed different clients' requests into the same window raises the session branch's AUC on CSIC~2010 from 0.63 to 0.98, evaluated on a held-out split disjoint from the requests the corrected model was trained on; the branch depends on genuine multi-request sessions and produces no score where the traffic does not contain them. Fusion is not uniformly beneficial: on CSIC~2010, weighting fully toward the session branch outperforms every blended weight tested. A threshold calibrated once on normal CSIC~2010 traffic and transferred unchanged to three attack-heavy datasets raises fused F1 six- to seven-fold over a threshold tuned separately on each dataset, because those datasets contain too much attack traffic for self-calibration to represent normal behaviour. The framework also achieves a lower false positive rate than a labelled Random Forest baseline, at comparable or better AUC than unsupervised baselines, and runs fast enough for near-real-time use. Taken together, these results show that session structure and threshold calibration can matter as much as model choice.}
+\abstract{Rule-based inspection of web server logs cannot detect attacks it has not already been told to look for, and most anomaly-detection studies validate their methods on a single dataset, which risks overstating how well a method generalises to new traffic. This paper presents a hybrid framework that fuses a content-based autoencoder, which scores individual HTTP requests, with a session-based variational LSTM autoencoder, which scores per-client request sequences. The framework is evaluated across eight datasets spanning three log formats, including the public CSIC~2010 HTTP dataset, under both within-dataset and cross-dataset threshold-transfer protocols. Correcting a session-construction fault that had mixed different clients' requests into the same window raises the session branch's AUC on CSIC~2010 from 0.63 to 0.98, evaluated on a held-out split disjoint from the requests the corrected model was trained on; the branch depends on genuine multi-request sessions and produces no score where the traffic does not contain them. Fusion under raw score averaging is not uniformly beneficial: on CSIC~2010, weighting fully toward the session branch outperforms every blended raw-average weight tested, though normalizing each branch's score against its own training-score distribution before averaging largely closes this gap. A threshold calibrated once on normal CSIC~2010 traffic and transferred unchanged to three attack-heavy datasets raises fused F1 six- to seven-fold over a threshold tuned separately on each dataset, because those datasets contain too much attack traffic for self-calibration to represent normal behaviour. The framework also achieves a lower false positive rate than a labelled Random Forest baseline, at comparable or better AUC than unsupervised baselines, and runs fast enough for near-real-time use. Taken together, these results show that session structure and threshold calibration can matter as much as model choice.}
 
 \keyword{web server logs; anomaly detection; autoencoder; variational LSTM; session modelling; score fusion; cross-dataset evaluation; threshold transfer}
 
@@ -300,7 +300,7 @@ One consequence of this protocol is that the classical baselines in Table~\ref{t
 
 \subsection{Implementation and Reproducibility}
 
-All models are implemented in Python, using PyTorch for the autoencoder and the variational LSTM autoencoder, and scikit-learn for scaling, classical baselines, and metric calculations. Both models are trained with a fixed random seed, so repeated training runs give the same result. Trained models, scalers, and score outputs for every dataset are saved to disk, so results can be reproduced without retraining.
+All models are implemented in Python, using PyTorch for the autoencoder and the variational LSTM autoencoder, and scikit-learn for scaling, classical baselines, and metric calculations. Both models are trained with a fixed random seed, so repeated training runs give the same result. Trained models, scalers, and score outputs for every dataset are saved to disk, so results can be reproduced without retraining. Because several of this paper's analyses (the fusion-weight sweep, the bootstrap confidence intervals, the classical-baseline thresholding) were produced by rerunning small scripts against these saved outputs rather than by retraining, we intend to deposit the full analysis codebase, together with the saved per-request scores, trained model weights, and scalers, in a public GitHub repository archived via Zenodo for a permanent DOI upon acceptance (Data Availability Statement), rather than relying on request-based access alone.
 
 \section{Results} \label{sec5}
 
@@ -353,24 +353,24 @@ The session branch only produces a score on CSIC~2010, for the reason given abov
 The fused branch, on CSIC~2010, sits between the two single branches (AUC 0.77), better than content alone but worse than session alone. On the six datasets without a session score, the fused branch is identical to the content branch, since there is nothing to fuse with. Access Super Long Session 2000 is entirely normal traffic, so its AUC cannot be computed at all (there is only one class), and its F1 is 0 for every branch.
 
 \begin{table}[H]
-\caption{Branch ablation: AUC and F1 by dataset, using the corrected session model.}
+\caption{Branch ablation: AUC and F1 (with 2{,}000-resample bootstrap 95\% CI) by dataset, using the corrected session model.}
 \label{tab:ablation}
 \begin{adjustwidth}{-\extralength}{0cm}
 \begin{tabularx}{\fulllength}{lCCCCCC}
 \toprule
-\textbf{Dataset} & \textbf{Content AUC} & \textbf{Session AUC} & \textbf{Fused AUC} & \textbf{Content F1} & \textbf{Session F1} & \textbf{Fused F1} \\
+\textbf{Dataset} & \textbf{Content AUC} & \textbf{Session AUC} & \textbf{Fused AUC} & \textbf{Content F1 [95\% CI]} & \textbf{Session F1 [95\% CI]} & \textbf{Fused F1 [95\% CI]} \\
 \midrule
-CSIC 2010 (held-out) & 0.70 & 0.98 & 0.76 & 0.11 & 0.12 & 0.11 \\
-Access Eval Mix 2000 & 0.69 & --- & 0.69 & 0.11 & --- & 0.11 \\
-Access Eval Small 500 & 0.71 & --- & 0.71 & 0.12 & --- & 0.12 \\
-Nginx JSON Eval 800 & 0.63 & --- & 0.63 & 0.09 & --- & 0.09 \\
-Access Attacks 200 & 0.48 & --- & 0.48 & 0.10 & --- & 0.10 \\
-Access Mixed 500 & 0.60 & --- & 0.60 & 0.13 & --- & 0.13 \\
-Access Small Benign & 0.63 & --- & 0.63 & 0.17 & --- & 0.17 \\
+CSIC 2010 (held-out) & 0.70 & 0.98 & 0.76 & 0.11 [0.10, 0.11] & 0.12 [0.12, 0.13] & 0.11 [0.11, 0.12] \\
+Access Eval Mix 2000 & 0.69 & --- & 0.69 & 0.11 [0.09, 0.13] & --- & 0.11 [0.09, 0.13] \\
+Access Eval Small 500 & 0.71 & --- & 0.71 & 0.12 [0.08, 0.16] & --- & 0.12 [0.08, 0.16] \\
+Nginx JSON Eval 800 & 0.63 & --- & 0.63 & 0.09 [0.06, 0.13] & --- & 0.09 [0.06, 0.13] \\
+Access Attacks 200 & 0.48 & --- & 0.48 & 0.10 [0.05, 0.17] & --- & 0.10 [0.05, 0.17] \\
+Access Mixed 500 & 0.60 & --- & 0.60 & 0.13 [0.08, 0.18] & --- & 0.13 [0.08, 0.18] \\
+Access Small Benign & 0.63 & --- & 0.63 & 0.16 [0.06, 0.28] & --- & 0.16 [0.06, 0.28] \\
 Access Super Long Session 2000 & n/a & n/a & n/a & 0.00 & 0.00 & 0.00 \\
 \bottomrule
 \end{tabularx}
-{\footnotesize\textit{Note: the CSIC~2010 row is scored on the 32{,}265-row held-out split described in Section~\ref{sec5.1} (7{,}200 benign requests never used to train the session model, plus all 25{,}065 attack requests), not on the full 61{,}065-row file, since the session model is trained on part of CSIC~2010's benign traffic.}\par}
+{\footnotesize\textit{Note: the CSIC~2010 row is scored on the 32{,}265-row held-out split described in Section~\ref{sec5.1} (7{,}200 benign requests never used to train the session model, plus all 25{,}065 attack requests), not on the full 61{,}065-row file, since the session model is trained on part of CSIC~2010's benign traffic. F1 confidence intervals are computed by the same bootstrap procedure as Table~\ref{tab:bootstrap_ci} (\texttt{scripts/bootstrap\_ci.py}), resampling each dataset's saved per-request scores and recomputing F1 at that branch's already-reported, self-calibrated 95th-percentile threshold; Access Super Long Session 2000 is excluded because it contains only one class, so F1 is fixed at 0 with no meaningful interval.}\par}
 \end{adjustwidth}
 \end{table}
 \unskip
@@ -434,21 +434,23 @@ The reason is the point already raised in Section~\ref{sec4.2}: these three targ
 In practice, this shows that on these datasets, what data a threshold is calibrated on matters more than whether it is calibrated on the same dataset being tested. A threshold set on real normal traffic, even from a completely different dataset, can work better than one set on the target dataset itself, if that target dataset does not actually represent normal conditions well. Figure~\ref{fig:threshold_transfer} shows the self-calibrated and transferred F1 scores side by side for both branches.
 
 \begin{table}[H]
-\caption{Self-calibrated vs. transferred threshold, on the three target datasets.}
+\caption{Self-calibrated vs. transferred threshold, on the three target datasets, with 2{,}000-resample bootstrap 95\% CI on each F1.}
 \label{tab:threshold_transfer}
 \begin{adjustwidth}{-\extralength}{0cm}
-\begin{tabularx}{\fulllength}{llCCCCCC}
+\scriptsize
+\begin{tabularx}{\fulllength}{llCCCCC}
 \toprule
-\textbf{Target Dataset} & \textbf{Branch} & \textbf{AUC} & \textbf{Self F1} & \textbf{Self FPR} & \textbf{Transf. F1} & \textbf{Transf. Recall} & \textbf{Transf. FPR} \\
+\textbf{Target Dataset} & \textbf{Branch} & \textbf{AUC} & \textbf{Self F1 [95\% CI]} & \textbf{Self FPR} & \textbf{Transf. F1 [95\% CI]} & \textbf{Transf. FPR} \\
 \midrule
-Access Eval Mix 2000 & Content & 0.69 & 0.11 & 0.02 & 0.50 & 0.34 & 0.04 \\
-Access Eval Mix 2000 & Fused & 0.69 & 0.11 & 0.02 & 0.69 & 0.55 & 0.24 \\
-Access Eval Small 500 & Content & 0.71 & 0.12 & 0.00 & 0.48 & 0.31 & 0.00 \\
-Access Eval Small 500 & Fused & 0.71 & 0.12 & 0.00 & 0.67 & 0.52 & 0.16 \\
-Nginx JSON Eval 800 & Content & 0.63 & 0.09 & 0.05 & 0.45 & 0.30 & 0.11 \\
-Nginx JSON Eval 800 & Fused & 0.63 & 0.09 & 0.05 & 0.65 & 0.53 & 0.32 \\
+Access Eval Mix 2000 & Content & 0.69 & 0.11 [0.09, 0.13] & 0.02 & 0.50 [0.48, 0.53] & 0.04 \\
+Access Eval Mix 2000 & Fused & 0.69 & 0.11 [0.09, 0.13] & 0.02 & 0.69 [0.67, 0.71] & 0.24 \\
+Access Eval Small 500 & Content & 0.71 & 0.12 [0.08, 0.16] & 0.00 & 0.48 [0.42, 0.53] & 0.00 \\
+Access Eval Small 500 & Fused & 0.71 & 0.12 [0.08, 0.16] & 0.00 & 0.67 [0.62, 0.71] & 0.16 \\
+Nginx JSON Eval 800 & Content & 0.63 & 0.09 [0.06, 0.13] & 0.05 & 0.45 [0.41, 0.50] & 0.11 \\
+Nginx JSON Eval 800 & Fused & 0.63 & 0.09 [0.06, 0.13] & 0.05 & 0.65 [0.62, 0.68] & 0.32 \\
 \bottomrule
 \end{tabularx}
+{\footnotesize\textit{Note: Self F1 CIs are computed as in Table~\ref{tab:ablation}, resampling each target dataset's own saved scores at its self-calibrated threshold. Transferred F1 CIs (\texttt{scripts/bootstrap\_transfer\_f1.py}) resample the same saved scores but apply the frozen CSIC~2010-calibrated threshold (fixed across resamples, not recomputed) used for the transferred point estimate. In every case, the two intervals do not overlap, so the transferred-threshold F1 improvement is not an artefact of sampling variance at these sample sizes.}\par}
 \end{adjustwidth}
 \end{table}
 \unskip
@@ -508,7 +510,7 @@ Access Mixed 500 & 0.599 [0.551, 0.646] & 0.679 [0.576, 0.779] & 0.568 [0.454, 0
 Access Small Benign & 0.628 [0.525, 0.724] & 0.727 [0.489, 0.929] & 0.759 [0.531, 0.936] & 0.474 [0.222, 0.711] \\
 \bottomrule
 \end{tabularx}
-{\footnotesize\textit{Note: the fused branch's interval is computed on the same sample used for its point estimate in Table~\ref{tab:baselines} (the dataset's full evaluation file, or the held-out split of Section~\ref{sec5.1} for CSIC~2010); each baseline's interval is computed on that baseline's own 20\% held-out test fold (Section~\ref{sec4.9}), which is as small as 24--160 rows for the self-generated datasets. Bold takeaway: only the CSIC~2010 and Access Attacks 200 comparisons are outside overlapping intervals; every other dataset's fused-vs-baseline point-estimate difference sits within the two methods' combined sampling uncertainty.}\par}
+{\footnotesize\textit{Note: the fused branch's interval is computed on the same sample used for its point estimate in Table~\ref{tab:baselines} (the dataset's full evaluation file, or the held-out split of Section~\ref{sec5.1} for CSIC~2010); each baseline's interval is computed on that baseline's own 20\% held-out test fold (Section~\ref{sec4.9}), which is as small as 24--160 rows for the self-generated datasets. Bold takeaway, restricted to the unsupervised baselines (Isolation Forest, One-Class SVM), as in Section~\ref{sec5.5}: only the CSIC~2010 and Access Attacks 200 comparisons are outside overlapping intervals there; every other dataset's fused-vs-unsupervised-baseline point-estimate difference sits within the two methods' combined sampling uncertainty. Random Forest, trained with attack labels, is a separate comparison: its interval sits outside the fused branch's on three of the seven datasets (CSIC~2010, Access Eval Mix 2000, and Access Attacks 200), consistent with its supervised advantage, and overlaps on the remaining four.}\par}
 \end{adjustwidth}
 \end{table}
 \unskip
@@ -593,7 +595,7 @@ The main limitations are that only one dataset in this study has genuine session
 
 \informedconsent{Not applicable.}
 
-\dataavailability{The CSIC~2010 HTTP dataset is publicly available from the Information Security Institute of CSIC (Spanish National Research Council). The self-generated Apache- and Nginx-style log datasets, together with the trained models, scalers, and score outputs used to produce the results in Section~\ref{sec5}, are available from the corresponding author upon reasonable request.}
+\dataavailability{The CSIC~2010 HTTP dataset is publicly available from the Information Security Institute of CSIC (Spanish National Research Council). The NASA Kennedy Space Center HTTP server logs used to train the content branch (Section~\ref{sec4.4}) are publicly available from the Internet Traffic Archive. The self-generated Apache- and Nginx-style log datasets, the trained models, scalers, and score outputs used to produce the results in Section~\ref{sec5}, and the analysis scripts used throughout this paper (including the bootstrap confidence-interval and threshold-transfer scripts) will be deposited in a public GitHub repository, archived via Zenodo for a permanent, citable DOI, upon acceptance; in the interim they are available from the corresponding author upon reasonable request.}
 
 \acknowledgments{The University of the West of Scotland is thanked for providing the academic environment and computational facilities for conducting this research. The authors also thank their supervisors for their guidance and constructive feedback throughout this work.}
 
